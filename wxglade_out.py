@@ -305,8 +305,16 @@ class root_frame(wx.Frame):
         event.Skip()
 
     def scan_now(self, event):  # wxGlade: root_frame.<event_handler>
-        print("Event handler 'scan_now' not implemented!")
-        event.Skip()
+        # print("Event handler 'scan_now' not implemented!")
+        # event.Skip()
+
+        # Getting data from Scan Now options
+        cs_images_chkbox = self.checkbox_3.GetValue()
+        cs_videos_chkbox = self.checkbox_4.GetValue()
+        print(cs_images_chkbox)
+        print(cs_videos_chkbox)
+        if cs_images_chkbox == False and cs_videos_chkbox == False:
+        	wx.MessageBox("Select one or more options to continue.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
 
     def scan_daily_schedule(self, event):  # wxGlade: root_frame.<event_handler>
         # print("Event handler 'scan_daily_schedule' not implemented!")
@@ -378,10 +386,6 @@ class root_frame(wx.Frame):
     def apply_settings(self, event):  # wxGlade: root_frame.<event_handler>
         # print("Event handler 'apply_settings' not implemented!")
         # event.Skip()
-        
-        # Getting data from Scan Now options
-        cs_images_chkbox = self.checkbox_3.GetValue()
-        cs_videos_chkbox = self.checkbox_4.GetValue()
 
         # Identifying which schedule option is selected
         daily_scan_radio = self.radio_btn_1.GetValue()
@@ -394,24 +398,21 @@ class root_frame(wx.Frame):
         	schedule_daily_hour = self.spin_ctrl_1.GetValue()
         	schedule_daily_minutes = self.spin_ctrl_7.GetValue()
         	schedule_daily_ampm = self.choice_4.GetCurrentSelection()
+        	print(schedule_daily_hour,schedule_daily_minutes,schedule_daily_ampm)
         elif weekly_scan_radio is True:
 	        # Getting data from Weekly Scan options
 	        schedule_weekly_day = self.choice_2.GetCurrentSelection()
 	        schedule_weekly_hour = self.spin_ctrl_3.GetValue()
 	        schedule_weekly_minutes = self.spin_ctrl_4.GetValue()
 	        schedule_weekly_ampm = self.choice_5.GetCurrentSelection()
+	        print(schedule_weekly_day,schedule_weekly_hour,schedule_weekly_minutes,schedule_weekly_ampm)
         elif monthly_scan_radio is True:
 	        # Getting data from Monthly Scan options
 	        schedule_monthly_day = self.choice_3.GetCurrentSelection()
 	        schedule_monthly_hour = self.spin_ctrl_5.GetValue()
 	        schedule_monthly_minutes = self.spin_ctrl_6.GetValue()
 	        schedule_monthly_ampm = self.choice_6.GetCurrentSelection()
-
-        # print(cs_images_chkbox)
-        # print(cs_videos_chkbox)
-        # print(schedule_daily_hour)
-        # print(schedule_daily_minutes)
-        # print(schedule_daily_ampm)
+	        print(schedule_monthly_day,schedule_monthly_hour,schedule_monthly_minutes,schedule_monthly_ampm)
 
 # end of class root_frame
 
