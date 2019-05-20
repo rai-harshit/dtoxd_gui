@@ -6,6 +6,7 @@
 
 import wx
 import wx.adv
+import webbrowser
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -138,7 +139,7 @@ class root_frame(wx.Frame):
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         static_line_1 = wx.StaticLine(self, wx.ID_ANY, style=wx.LI_VERTICAL)
         static_line_1.SetMinSize((4, 400))
-        grid_sizer_1.Add(static_line_1, 0, 0, 0)
+        grid_sizer_1.Add(static_line_1, 0, wx.LEFT, 10)
         label_1 = wx.StaticText(self, wx.ID_ANY, "Schedule Scan")
         label_1.SetForegroundColour(wx.Colour(0, 0, 0))
         label_1.SetFont(wx.Font(13, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, "Calibri"))
