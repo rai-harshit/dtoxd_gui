@@ -48,7 +48,8 @@ class root_frame(wx.Frame):
         self.spin_ctrl_1 = wx.SpinCtrl(self, wx.ID_ANY, "1", min=0, max=23, style=wx.SP_WRAP)
         self.spin_ctrl_7 = wx.SpinCtrl(self, wx.ID_ANY, "0", min=0, max=59, style=wx.SP_WRAP)
         self.choice_4 = wx.Choice(self, wx.ID_ANY, choices=["AM", "PM"])
-        self.button_4 = wx.Button(self, wx.ID_ANY, "Scan Now")
+        self.button_4 = wx.ToggleButton(self, wx.ID_ANY, "Scan Now")
+        self.progressbar = wx.Gauge(self, wx.ID_ANY, 100)
         self.radio_btn_2 = wx.RadioButton(self, wx.ID_ANY, "")
         self.choice_2 = wx.Choice(self, wx.ID_ANY, choices=["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
         self.spin_ctrl_3 = wx.SpinCtrl(self, wx.ID_ANY, "1", min=1, max=12, style=wx.SP_WRAP)
@@ -71,7 +72,7 @@ class root_frame(wx.Frame):
         self.__do_layout()
 
         self.Bind(wx.EVT_RADIOBUTTON, self.scan_daily_schedule, self.radio_btn_1)
-        self.Bind(wx.EVT_BUTTON, self.scan_now, self.button_4)
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.scan_toggle, self.button_4)
         self.Bind(wx.EVT_RADIOBUTTON, self.scan_weekly_schedule, self.radio_btn_2)
         self.Bind(wx.EVT_CHECKBOX, self.realtime_processing, self.checkbox_5)
         self.Bind(wx.EVT_RADIOBUTTON, self.scan_monthly_schedule, self.radio_btn_3)
@@ -96,13 +97,8 @@ class root_frame(wx.Frame):
         self.spin_ctrl_7.SetMinSize((42, 20))
         self.choice_4.SetMinSize((44, 22))
         self.choice_4.SetSelection(0)
-        self.button_4.SetMinSize((188, 26))
-        self.button_4.SetForegroundColour(wx.Colour(0, 0, 0))
-        self.button_4.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
-        # self.button_6.SetMinSize((88,26))
-        # self.button_6.SetForegroundColour(wx.Colour(0, 0, 0))
-        # self.button_6.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
-        # self.button_6.Hide()
+        self.progressbar.SetMinSize((175, 25))
+        self.progressbar.Hide()
         self.choice_2.Enable(False)
         self.choice_2.SetSelection(0)
         self.spin_ctrl_3.SetMinSize((40, 20))
@@ -192,9 +188,9 @@ class root_frame(wx.Frame):
         grid_sizer_1.Add(self.choice_4, 0, wx.ALIGN_CENTER | wx.LEFT, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add(self.button_4, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
+        grid_sizer_1.Add(self.button_4, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 18)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add((0, 0), 0, 0, 0)
+        grid_sizer_1.Add(self.progressbar, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 10)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
@@ -320,25 +316,53 @@ class root_frame(wx.Frame):
         # event.Skip()
         webbrowser.open_new_tab("https://www.dtoxd.ai")
 
-    def scan_now(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'scan_now' not implemented!")
-        # event.Skip()
-
-        # Getting data from Scan Now options
+    def scan_toggle(self, event):  # wxGlade: root_frame.<event_handler>
+        # print("Event handler 'scan_toggle' not implemented!")
+        # event.Skip()       
+        scan_request = self.button_4.GetValue()
         cs_images_chkbox = self.checkbox_3.GetValue()
         cs_videos_chkbox = self.checkbox_4.GetValue()
-        cs_scan_type = self.radio_btn_4.GetValue()
-        print(cs_scan_type)
-        print(cs_images_chkbox)
-        print(cs_videos_chkbox)
-        if cs_scan_type == True:
-        	print("Quick Scan Selected.")
-        else:
-        	print("Deep Scan Selected.")
-        if cs_images_chkbox == False and cs_videos_chkbox == False:
-        	wx.MessageBox("Select one or more options to continue.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
-        else:
-            self.button_4.Hide()
+        cs_scan_type = self.radio_btn_4.GetValue() 
+        # Getting data from Scan Now options
+        if scan_request is True:
+            if cs_images_chkbox is True or cs_videos_chkbox is True:
+                if cs_scan_type is True:
+                    print("Quick Scan Mode Selected")
+                else:
+                    print("Deep Scan Mode Selected")
+                print("Scan Started")
+                #Disabling all the Radio Buttons and Checkboxes from Content Scanner
+                self.radio_btn_4.Disable()
+                self.radio_btn_5.Disable()
+                self.checkbox_3.Disable()
+                self.checkbox_4.Disable()
+                self.button_4.SetLabel("Cancel")
+                self.progressbar.Show()
+            else:
+                self.button_4.SetValue(False)
+                wx.MessageBox("Select one or more options to continue.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
+        if scan_request is False:
+            print("Scan Stopped")
+            self.radio_btn_4.Enable()
+            self.radio_btn_5.Enable()
+            self.checkbox_3.Enable()
+            self.checkbox_4.Enable()
+            self.progressbar.Hide()
+            self.button_4.SetLabel("Scan Now")
+
+
+        # cs_scan_type = self.radio_btn_4.GetValue()
+        # print(cs_scan_type)
+        # print(cs_images_chkbox)
+        # print(cs_videos_chkbox)
+        # if cs_scan_type == True:
+        # 	print("Quick Scan Selected.")
+        # else:
+        # 	print("Deep Scan Selected.")
+        # if cs_images_chkbox == False and cs_videos_chkbox == False:
+        # 	wx.MessageBox("Select one or more options to continue.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
+        # else:
+        #     self.button_4.Hide()
 
     def scan_daily_schedule(self, event):  # wxGlade: root_frame.<event_handler>
         # print("Event handler 'scan_daily_schedule' not implemented!")
