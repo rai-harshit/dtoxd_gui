@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['wxglade_out.py'],
+a = Analysis(['scanner.py'],
              pathex=['C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\Executables\\Windows'],
              binaries=[],
              datas=[],
@@ -21,7 +21,7 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='wxglade_out',
+          name='scanner',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -33,4 +33,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
-               name='wxglade_out')
+               name='scanner')
