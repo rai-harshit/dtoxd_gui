@@ -352,20 +352,6 @@ class root_frame(wx.Frame):
             self.progressbar.Hide()
             self.button_4.SetLabel("Scan Now")
 
-
-        # cs_scan_type = self.radio_btn_4.GetValue()
-        # print(cs_scan_type)
-        # print(cs_images_chkbox)
-        # print(cs_videos_chkbox)
-        # if cs_scan_type == True:
-        # 	print("Quick Scan Selected.")
-        # else:
-        # 	print("Deep Scan Selected.")
-        # if cs_images_chkbox == False and cs_videos_chkbox == False:
-        # 	wx.MessageBox("Select one or more options to continue.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
-        # else:
-        #     self.button_4.Hide()
-
     def scan_daily_schedule(self, event):  # wxGlade: root_frame.<event_handler>
         # print("Event handler 'scan_daily_schedule' not implemented!")
         # event.Skip()
