@@ -7,6 +7,7 @@
 import wx
 import wx.adv
 import webbrowser
+import scanner_main
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -291,34 +292,23 @@ class root_frame(wx.Frame):
         self.Centre()
         # end wxGlade
 
-    def quit(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'quit' not implemented!")
-        # event.Skip()
+    def quit(self, event):
         self.Close()
 
-    def documentation_help(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'documentation_help' not implemented!")
-        # event.Skip()
+    def documentation_help(self, event):
         webbrowser.open_new_tab("https://www.dtoxd.ai")
 
-    def report_bugs(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'report_bugs' not implemented!")
-        # event.Skip()
+    def report_bugs(self, event): 
         webbrowser.open_new_tab("https://www.dtoxd.ai")
 
-    def check_for_updates(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'check_for_updates' not implemented!")
-        # event.Skip()
+    def check_for_updates(self, event):
+    	n_new_tab("https://www.dtoxd.ai")
+
+    def about_dtoxd(self, event): 
         webbrowser.open_new_tab("https://www.dtoxd.ai")
 
-    def about_dtoxd(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'about_dtoxd' not implemented!")
-        # event.Skip()
-        webbrowser.open_new_tab("https://www.dtoxd.ai")
 
-    def scan_toggle(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'scan_toggle' not implemented!")
-        # event.Skip()       
+    def scan_toggle(self, event):    
         scan_request = self.button_4.GetValue()
         cs_images_chkbox = self.checkbox_3.GetValue()
         cs_videos_chkbox = self.checkbox_4.GetValue()
@@ -327,7 +317,9 @@ class root_frame(wx.Frame):
         if scan_request is True:
             if cs_images_chkbox is True or cs_videos_chkbox is True:
                 if cs_scan_type is True:
-                    print("Quick Scan Mode Selected")
+                	p1=scanner_main.scanner()
+                	p1.Quickie()
+                    # print("Quick Scan Mode Selected")
                 else:
                     print("Deep Scan Mode Selected")
                 print("Scan Started")
