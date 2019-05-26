@@ -466,19 +466,18 @@ class root_frame(wx.Frame):
     	print("Scanner Interface Thread Created.")
     	scanner_obj = Scanner()
     	if scan_type == "deep":	    	
-	    	scanner_thread = threading.Thread(target=scanner_obj.DeepScan)   	
+	    	scanner_thread = threading.Thread(target=scanner_obj.DeepScan, name="scanner_thread", daemon=True)   	
     	if scan_type == "quick":
-	    	scanner_thread = threading.Thread(target=scanner_obj.QuickScan)
+	    	scanner_thread = threading.Thread(target=scanner_obj.QuickScan, name="scanner_thread", daemon=True)
     	scanner_thread.start()
-    	prediction_thread = threading.Thread(target=scanner_obj.Prediction)
+    	prediction_thread = threading.Thread(target=scanner_obj.Prediction, name="prediction_thread", daemon=True)
     	prediction_thread.start()
-    	quarantine_thread = threading.Thread(target=scanner_obj.Quarantine)
+    	quarantine_thread = threading.Thread(target=scanner_obj.Quarantine, name="quarantine_thread", daemon=True)
     	quarantine_thread.start()
     	scanner_thread.join()
     	prediction_thread.join()
     	quarantine_thread.join()     	
     	print("Processing Finished.")
-
     	self.button_4.SetValue(False)
     	self.progressbar.SetValue(0)
     	self.radio_btn_4.Enable()
