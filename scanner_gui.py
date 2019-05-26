@@ -11,6 +11,7 @@ import time
 import threading
 from scanner_main import Scanner
 
+
 # begin wxGlade: dependencies
 # end wxGlade
 
@@ -23,6 +24,17 @@ class root_frame(wx.Frame):
         kwds["style"] = kwds.get("style", 0) | wx.BORDER_SIMPLE | wx.CAPTION | wx.CLIP_CHILDREN | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.STAY_ON_TOP | wx.SYSTEM_MENU
         wx.Frame.__init__(self, *args, **kwds)
         self.SetSize((720, 420))
+
+        bitmap = wx.Bitmap('./src/splash_screen.png')
+        splash = wx.adv.SplashScreen( bitmap, wx.adv.SPLASH_CENTER_ON_SCREEN|wx.adv.SPLASH_TIMEOUT, 20000, self, id=wx.ID_ANY,
+             				pos=wx.DefaultPosition, size=wx.DefaultSize,
+             				style=wx.BORDER_SIMPLE|wx.FRAME_NO_TASKBAR|wx.STAY_ON_TOP)
+        splash.Show()
+
+        import tensorflow as tf
+        import keras
+        import cv2
+        import numpy
         
         # Menu Bar
         self.frame_menubar = wx.MenuBar()
@@ -82,6 +94,8 @@ class root_frame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.apply_and_close, self.button_3)
         self.Bind(wx.EVT_BUTTON, self.quit, self.button_2)
         self.Bind(wx.EVT_BUTTON, self.apply_settings, self.button_1)
+
+        splash.Destroy()
         # end wxGlade
 
     def __set_properties(self):
