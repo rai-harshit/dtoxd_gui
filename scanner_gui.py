@@ -7,14 +7,15 @@
 import wx
 import wx.adv
 import webbrowser
-import scanner_main
+import time
+import threading
+from scanner_main import Scanner
 
 # begin wxGlade: dependencies
 # end wxGlade
 
 # begin wxGlade: extracode
 # end wxGlade
-
 
 class root_frame(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -317,12 +318,12 @@ class root_frame(wx.Frame):
         if scan_request is True:
             if cs_images_chkbox is True or cs_videos_chkbox is True:
                 if cs_scan_type is True:
-                	p1=scanner_main.scanner()
-                	p1.Quickie()
-                    # print("Quick Scan Mode Selected")
+                    print("Quick Scan Mode Selected")
+                    interface_thread = threading.Thread(target=self.scanner_interface,args=("quick",))
                 else:
                     print("Deep Scan Mode Selected")
-                print("Scan Started")
+                    interface_thread = threading.Thread(target=self.scanner_interface,args=("deep",))
+                interface_thread.start()
                 self.progressbar.Pulse()
                 #Disabling all the Radio Buttons and Checkboxes from Content Scanner
                 self.radio_btn_4.Disable()
@@ -344,9 +345,7 @@ class root_frame(wx.Frame):
             self.progressbar.Hide()
             self.button_4.SetLabel("Scan Now")
 
-    def scan_daily_schedule(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'scan_daily_schedule' not implemented!")
-        # event.Skip()
+    def scan_daily_schedule(self, event): 
 
         # Enable Daily Scan Controls
         self.spin_ctrl_1.Enable(True)
@@ -365,9 +364,7 @@ class root_frame(wx.Frame):
         self.spin_ctrl_6.Enable(False)
         self.choice_6.Enable(False)
 
-    def scan_weekly_schedule(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'scan_weekly_schedule' not implemented!")
-        # event.Skip()
+    def scan_weekly_schedule(self, event):
 
         # Disable Daily Scan Controls
         self.spin_ctrl_1.Enable(False)
@@ -386,9 +383,7 @@ class root_frame(wx.Frame):
         self.spin_ctrl_6.Enable(False)
         self.choice_6.Enable(False)
 
-    def scan_monthly_schedule(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'scan_monthly_schedule' not implemented!")
-        # event.Skip()
+    def scan_monthly_schedule(self, event): 
 
         # Disable Daily Scan Controls
         self.spin_ctrl_1.Enable(False)
@@ -407,13 +402,7 @@ class root_frame(wx.Frame):
         self.spin_ctrl_6.Enable(True)
         self.choice_6.Enable(True)
 
-    # def quick_deep_scan(self, event):  # wxGlade: root_frame.<event_handler>
-    #     print("Event handler 'quick_deep_scan' not implemented!")
-    #     event.Skip()
-
-    def apply_settings(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'apply_settings' not implemented!")
-        # event.Skip()
+    def apply_settings(self, event):
 
         # Identifying which schedule option is selected
         daily_scan_radio = self.radio_btn_1.GetValue()
@@ -451,16 +440,39 @@ class root_frame(wx.Frame):
         	f.close()
 	        # print(schedule_monthly_day,schedule_monthly_hour,schedule_monthly_minutes,schedule_monthly_ampm)
 
-    def apply_and_close(self, event):  # wxGlade: root_frame.<event_handler>
-        # print("Event handler 'apply_and_close' not implemented!")
-        # event.Skip()
+    def apply_and_close(self, event):
         self.apply_settings(event)
         self.Close()
 
-    def realtime_processing(self, event):  # wxGlade: root_frame.<event_handler>
+    def realtime_processing(self, event):
         print("Event handler 'realtime_processing' not implemented!")
         event.Skip()
 
+    def scanner_interface(self,scan_type):
+    	print("Scanner Interface Thread Created.")
+    	scanner_obj = Scanner()
+    	if scan_type == "deep":	    	
+	    	scanner_thread = threading.Thread(target=scanner_obj.DeepScan)   	
+    	if scan_type == "quick":
+	    	scanner_thread = threading.Thread(target=scanner_obj.QuickScan)
+    	scanner_thread.start()
+    	prediction_thread = threading.Thread(target=scanner_obj.Prediction)
+    	prediction_thread.start()
+    	quarantine_thread = threading.Thread(target=scanner_obj.Quarantine)
+    	quarantine_thread.start()
+    	scanner_thread.join()
+    	prediction_thread.join()
+    	quarantine_thread.join()     	
+    	print("Processing Finished.")
+
+    	self.button_4.SetValue(False)
+    	self.progressbar.SetValue(0)
+    	self.radio_btn_4.Enable()
+    	self.radio_btn_5.Enable()
+    	self.checkbox_3.Enable()
+    	self.checkbox_4.Enable()
+    	self.progressbar.Hide()
+    	self.button_4.SetLabel("Scan Now")
 
 # end of class root_frame
 
