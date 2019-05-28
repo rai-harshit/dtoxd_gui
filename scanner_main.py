@@ -89,10 +89,10 @@ class Scanner():
 		data.put("XOXO")
 
 	def QuickScan(self):
-		# drives = win32api.GetLogicalDriveStrings()
-		# drives = drives.split('\000')[:-1]
-		# drives[0]=os.path.expanduser("~")
-		drives = ["C:\\Users\\g_host\\Documents\\"]
+		drives = win32api.GetLogicalDriveStrings()
+		drives = drives.split('\000')[:-1]
+		drives[0]=os.path.expanduser("~")
+		# drives = ["C:\\Users\\g_host\\Documents\\"]
 		for drive in drives:
 			if(config.thread_stop==True):
 				data_size = data.qsize()
