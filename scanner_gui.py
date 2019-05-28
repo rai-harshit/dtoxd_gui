@@ -10,7 +10,8 @@ import webbrowser
 import time
 import threading
 from scanner_main import Scanner
-
+import config
+import sys
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -31,10 +32,12 @@ class root_frame(wx.Frame):
              				style=wx.BORDER_SIMPLE|wx.FRAME_NO_TASKBAR|wx.STAY_ON_TOP)
         splash.Show()
 
-        import tensorflow as tf
-        import keras
-        import cv2
-        import numpy
+        # import tensorflow as tf
+        # import keras
+        # from keras.models import load_model
+        # from keras.backend import clear_session
+        # import cv2 as cv
+        # import numpy as np
         
         # Menu Bar
         self.frame_menubar = wx.MenuBar()
@@ -308,6 +311,8 @@ class root_frame(wx.Frame):
         # end wxGlade
 
     def quit(self, event):
+        # self.Close()
+        config.thread_stop = True
         self.Close()
 
     def documentation_help(self, event):
@@ -333,10 +338,10 @@ class root_frame(wx.Frame):
             if cs_images_chkbox is True or cs_videos_chkbox is True:
                 if cs_scan_type is True:
                     print("Quick Scan Mode Selected")
-                    interface_thread = threading.Thread(target=self.scanner_interface,args=("quick",))
+                    interface_thread = threading.Thread(target=self.scanner_interface,args=("quick",),daemon=True)
                 else:
                     print("Deep Scan Mode Selected")
-                    interface_thread = threading.Thread(target=self.scanner_interface,args=("deep",))
+                    interface_thread = threading.Thread(target=self.scanner_interface,args=("deep",),daemon=True)
                 interface_thread.start()
                 self.progressbar.Pulse()
                 #Disabling all the Radio Buttons and Checkboxes from Content Scanner
@@ -350,6 +355,7 @@ class root_frame(wx.Frame):
                 self.button_4.SetValue(False)
                 wx.MessageBox("Select 'Images' or 'Videos' or both options to begin the scan.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
         if scan_request is False:
+            config.thread_stop = True
             print("Scan Stopped")
             self.progressbar.SetValue(0)
             self.radio_btn_4.Enable()
@@ -455,6 +461,7 @@ class root_frame(wx.Frame):
 	        # print(schedule_monthly_day,schedule_monthly_hour,schedule_monthly_minutes,schedule_monthly_ampm)
 
     def apply_and_close(self, event):
+        config.thread_stop = True
         self.apply_settings(event)
         self.Close()
 
@@ -463,29 +470,40 @@ class root_frame(wx.Frame):
         event.Skip()
 
     def scanner_interface(self,scan_type):
-    	print("Scanner Interface Thread Created.")
-    	scanner_obj = Scanner()
-    	if scan_type == "deep":	    	
-	    	scanner_thread = threading.Thread(target=scanner_obj.DeepScan, name="scanner_thread", daemon=True)   	
-    	if scan_type == "quick":
-	    	scanner_thread = threading.Thread(target=scanner_obj.QuickScan, name="scanner_thread", daemon=True)
-    	scanner_thread.start()
-    	prediction_thread = threading.Thread(target=scanner_obj.Prediction, name="prediction_thread", daemon=True)
-    	prediction_thread.start()
-    	quarantine_thread = threading.Thread(target=scanner_obj.Quarantine, name="quarantine_thread", daemon=True)
-    	quarantine_thread.start()
-    	scanner_thread.join()
-    	prediction_thread.join()
-    	quarantine_thread.join()     	
-    	print("Processing Finished.")
-    	self.button_4.SetValue(False)
-    	self.progressbar.SetValue(0)
-    	self.radio_btn_4.Enable()
-    	self.radio_btn_5.Enable()
-    	self.checkbox_3.Enable()
-    	self.checkbox_4.Enable()
-    	self.progressbar.Hide()
-    	self.button_4.SetLabel("Scan Now")
+        print("Control reached to Scanner Interface.")
+        scanner_obj = Scanner()
+        config.thread_stop = False
+        if scan_type == "deep":	    	
+        	scanner_thread = threading.Thread(target=scanner_obj.DeepScan, name="scanner_thread", daemon=True)   	
+        if scan_type == "quick":
+        	scanner_thread = threading.Thread(target=scanner_obj.QuickScan, name="scanner_thread", daemon=True)
+        prediction_thread = threading.Thread(target=scanner_obj.Prediction, name="prediction_thread", daemon=True)
+        quarantine_thread = threading.Thread(target=scanner_obj.Quarantine, name="quarantine_thread", daemon=True)
+        #Start thread
+        scanner_thread.start()
+        prediction_thread.start()
+        quarantine_thread.start()
+        #Join thread
+        scanner_thread.join()
+        prediction_thread.join()
+        quarantine_thread.join()	
+        print("Processing Finished.")
+        self.button_4.SetValue(False)
+        self.progressbar.SetValue(0)
+        self.radio_btn_4.Enable()
+        self.radio_btn_5.Enable()
+        self.checkbox_3.Enable()
+        self.checkbox_4.Enable()
+        self.progressbar.Hide()
+        self.button_4.SetLabel("Scan Now")
+
+
+class Report(wx.Frame):
+    #Class to generate report
+    def __init__(self,parent,id):
+        wx.Frame.__init__(self, parent, id, 'New Window', size=(400,300))
+        wx.Frame.CenterOnScreen(self)
+        #self.new.Show(False)
 
 # end of class root_frame
 
