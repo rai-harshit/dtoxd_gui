@@ -28,16 +28,8 @@ class root_frame(wx.Frame):
 
         bitmap = wx.Bitmap('./src/splash_screen.png')
         splash = wx.adv.SplashScreen( bitmap, wx.adv.SPLASH_CENTER_ON_SCREEN|wx.adv.SPLASH_TIMEOUT, 20000, self, id=wx.ID_ANY,
-             				pos=wx.DefaultPosition, size=wx.DefaultSize,
-             				style=wx.BORDER_SIMPLE|wx.FRAME_NO_TASKBAR|wx.STAY_ON_TOP)
+             				pos=wx.DefaultPosition, size=wx.DefaultSize)
         splash.Show()
-
-        # import tensorflow as tf
-        # import keras
-        # from keras.models import load_model
-        # from keras.backend import clear_session
-        # import cv2 as cv
-        # import numpy as np
         
         # Menu Bar
         self.frame_menubar = wx.MenuBar()
@@ -313,7 +305,7 @@ class root_frame(wx.Frame):
     def quit(self, event):
         # self.Close()
         config.thread_stop = True
-        self.Close()
+        wx.CallAfter(self.Close)
 
     def documentation_help(self, event):
         webbrowser.open_new_tab("https://www.dtoxd.ai")
@@ -462,8 +454,9 @@ class root_frame(wx.Frame):
 
     def apply_and_close(self, event):
         config.thread_stop = True
-        self.apply_settings(event)
-        self.Close()
+        # self.apply_settings(event)
+        wx.CallAfter(self.apply_settings,event)
+        wx.CallAfter(self.Close)
 
     def realtime_processing(self, event):
         print("Event handler 'realtime_processing' not implemented!")
