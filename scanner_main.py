@@ -1,6 +1,6 @@
 import os
-from multiprocessing import Queue
 import threading
+from multiprocessing import Queue
 import tensorflow as tf
 import keras
 from keras.models import load_model
@@ -145,6 +145,7 @@ class Scanner():
 				if(img is not None):
 					height, width = img.shape[:2]
 					if(height>48 and width>48):
+						config.statusbar_update.put(x)
 						img=cv.resize(img,(300,300))
 						# img=cv.cvtColor(img,cv.COLOR_BGR2RGB)
 						img=np.array(img)
