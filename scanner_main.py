@@ -89,18 +89,21 @@ class Scanner():
 		data.put("XOXO")
 
 	def QuickScan(self):
+		total_images_found = 0
 		drives = win32api.GetLogicalDriveStrings()
 		drives = drives.split('\000')[:-1]
 		drives[0]=os.path.expanduser("~")
 		# drives = ["C:\\Users\\g_host\\Documents\\"]
 		for drive in drives:
 			if(config.thread_stop==True):
+				config.scan_details['total_images_found'] = total_images_found
 				data_size = data.qsize()
 				for i in range(data_size):
 					data.get()
 				break
 			for (root,dirs,files) in os.walk(drive, topdown=True):
 				if(config.thread_stop==True):
+					config.scan_details['total_images_found'] = total_images_found
 					data_size = data.qsize()
 					for i in range(data_size):
 						data.get()
@@ -108,20 +111,27 @@ class Scanner():
 				if(len(files)!=0):
 					for i in files:
 						if(config.thread_stop==True):
+							config.scan_details['total_images_found'] = total_images_found
 							data_size = data.qsize()
 							for i in range(data_size):
 								data.get()
 							break
 						if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
+							total_images_found+=1
 							data.put(root+"/"+i)
+		config.scan_details['total_images_found'] = total_images_found
 		data.put("XOXO")
 
 	def Prediction(self):
+		total_images_scanned = 0
+		total_explicit_images = 0
 		clear_session()
 		x=""
 		model = load_model("model.h5")
 		while(x!="XOXO"):
 			if(config.thread_stop==True):
+				config.scan_details['total_images_scanned'] = total_images_scanned
+				config.scan_details['total_explicit_images'] = total_explicit_images
 				explicitfiles_size = explicitfiles.qsize()
 				for i in range(explicitfiles_size):
 					explicitfiles.get()
@@ -140,8 +150,12 @@ class Scanner():
 						img=np.array(img)
 						image = np.reshape(img,(1,300,300,3))
 						l=model.predict(image)
+						total_images_scanned+=1
 						if(l[0][0]>l[0][1]):
 							explicitfiles.put(x)
+							total_explicit_images+=1
+		config.scan_details['total_explicit_images'] = total_explicit_images
+		config.scan_details['total_images_scanned'] = total_images_scanned
 		explicitfiles.put("XOXO")
 
 	def Quarantine(self):
