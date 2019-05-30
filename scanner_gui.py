@@ -14,6 +14,7 @@ import config
 import sys
 import time
 from datetime import datetime
+import scan_data
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -59,6 +60,7 @@ class root_frame(wx.Frame):
         self.spin_ctrl_1 = wx.SpinCtrl(self, wx.ID_ANY, "1", min=0, max=23, style=wx.SP_WRAP)
         self.spin_ctrl_7 = wx.SpinCtrl(self, wx.ID_ANY, "0", min=0, max=59, style=wx.SP_WRAP)
         self.choice_4 = wx.Choice(self, wx.ID_ANY, choices=["AM", "PM"])
+        self.slider_1 = wx.Slider(self, wx.ID_ANY, 0, 0, 1)
         self.button_4 = wx.ToggleButton(self, wx.ID_ANY, "Scan Now")
         self.progressbar = wx.Gauge(self, wx.ID_ANY, 100)
         self.radio_btn_2 = wx.RadioButton(self, wx.ID_ANY, "")
@@ -78,6 +80,7 @@ class root_frame(wx.Frame):
         self.button_3 = wx.Button(self, wx.ID_ANY, "OK")
         self.button_2 = wx.Button(self, wx.ID_ANY, "Cancel")
         self.button_1 = wx.Button(self, wx.ID_ANY, "Apply")
+        self.frame_statusbar = self.CreateStatusBar(1, wx.STB_ELLIPSIZE_MIDDLE)
 
         self.__set_properties()
         self.__do_layout()
@@ -110,6 +113,7 @@ class root_frame(wx.Frame):
         self.spin_ctrl_7.SetMinSize((42, 20))
         self.choice_4.SetMinSize((44, 22))
         self.choice_4.SetSelection(0)
+        self.slider_1.SetMinSize((65, 22))
         self.progressbar.SetMinSize((175, 25))
         self.progressbar.Hide()
         self.choice_2.Enable(False)
@@ -135,10 +139,11 @@ class root_frame(wx.Frame):
         self.button_5.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
         self.button_5.Enable(False)
         self.hyperlink_1.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Calibri"))
+        self.frame_statusbar.SetStatusText("  Scanner Ready !")
         # end wxGlade
 
     def __do_layout(self):
-        # begin wxGlade: root_frame.__do_layout
+        # begin wxGlade: _715811673__883977639__931769938_root_frame.__do_layout
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         grid_sizer_1 = wx.GridSizer(9, 13, 0, 0)
         label_3 = wx.StaticText(self, wx.ID_ANY, "Content Scanner")
@@ -164,6 +169,7 @@ class root_frame(wx.Frame):
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add(self.radio_btn_4, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.TOP, 20)
         label_2 = wx.StaticText(self, wx.ID_ANY, "Quick Scan")
+        label_2.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Segoe UI"))
         grid_sizer_1.Add(label_2, 0, wx.LEFT | wx.TOP, 20)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add(self.radio_btn_5, 0, wx.LEFT | wx.TOP, 20)
@@ -180,16 +186,16 @@ class root_frame(wx.Frame):
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add(self.checkbox_3, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 19)
+        grid_sizer_1.Add(self.checkbox_3, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
         label_4 = wx.StaticText(self, wx.ID_ANY, "Images")
         label_4.SetForegroundColour(wx.Colour(0, 0, 0))
-        label_4.SetFont(wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Calibri"))
+        label_4.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Segoe UI"))
         grid_sizer_1.Add(label_4, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add(self.checkbox_4, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
         label_5 = wx.StaticText(self, wx.ID_ANY, "Videos")
         label_5.SetForegroundColour(wx.Colour(0, 0, 0))
-        label_5.SetFont(wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Calibri"))
+        label_5.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Segoe UI"))
         grid_sizer_1.Add(label_5, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
@@ -201,12 +207,19 @@ class root_frame(wx.Frame):
         grid_sizer_1.Add(self.choice_4, 0, wx.ALIGN_CENTER | wx.LEFT, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add(self.button_4, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 18)
+        bitmap_1 = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap("C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\src\\help-info.ico", wx.BITMAP_TYPE_ANY), style=wx.BORDER_NONE)
+        grid_sizer_1.Add(bitmap_1, 0, wx.LEFT, 17)
+        label_13 = wx.StaticText(self, wx.ID_ANY, "Sensitivity")
+        label_13.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Segoe UI"))
+        grid_sizer_1.Add(label_13, 0, wx.LEFT, 20)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add(self.progressbar, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 10)
-        grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add((0, 0), 0, 0, 0)
+        label_17 = wx.StaticText(self, wx.ID_ANY, "Low")
+        label_17.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Segoe UI"))
+        grid_sizer_1.Add(label_17, 0, wx.LEFT, 20)
+        grid_sizer_1.Add(self.slider_1, 0, wx.ALIGN_RIGHT | wx.TOP, 0)
+        label_18 = wx.StaticText(self, wx.ID_ANY, "High")
+        label_18.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Segoe UI"))
+        grid_sizer_1.Add(label_18, 0, wx.LEFT, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add(self.radio_btn_2, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 0)
         label_11 = wx.StaticText(self, wx.ID_ANY, "Weekly")
@@ -217,12 +230,9 @@ class root_frame(wx.Frame):
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
-        label_6 = wx.StaticText(self, wx.ID_ANY, "Real-time Content Moderation")
-        label_6.SetForegroundColour(wx.Colour(0, 0, 0))
-        label_6.SetFont(wx.Font(13, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, "Calibri"))
-        grid_sizer_1.Add(label_6, 0, wx.LEFT | wx.TOP, 20)
+        grid_sizer_1.Add(self.button_4, 0, wx.LEFT, 20)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add((0, 0), 0, 0, 0)
+        grid_sizer_1.Add(self.progressbar, 0, wx.LEFT, 16)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
@@ -235,11 +245,11 @@ class root_frame(wx.Frame):
         grid_sizer_1.Add(label_14, 0, wx.ALIGN_CENTER | wx.LEFT, 35)
         grid_sizer_1.Add(self.spin_ctrl_4, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
         grid_sizer_1.Add(self.choice_5, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
-        grid_sizer_1.Add(self.checkbox_5, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
-        label_7 = wx.StaticText(self, wx.ID_ANY, "Images")
-        label_7.SetForegroundColour(wx.Colour(0, 0, 0))
-        label_7.SetFont(wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Calibri"))
-        grid_sizer_1.Add(label_7, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
+        label_6 = wx.StaticText(self, wx.ID_ANY, "Real-time Content Moderation")
+        label_6.SetForegroundColour(wx.Colour(0, 0, 0))
+        label_6.SetFont(wx.Font(13, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, "Calibri"))
+        grid_sizer_1.Add(label_6, 0, wx.LEFT, 20)
+        grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
@@ -254,14 +264,17 @@ class root_frame(wx.Frame):
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
+        grid_sizer_1.Add(self.checkbox_5, 0, wx.LEFT, 20)
+        label_7 = wx.StaticText(self, wx.ID_ANY, "Images")
+        label_7.SetForegroundColour(wx.Colour(0, 0, 0))
+        label_7.SetFont(wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Calibri"))
+        grid_sizer_1.Add(label_7, 0, wx.LEFT, 20)
+        grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add(self.checkbox_6, 0, wx.LEFT, 20)
         label_8 = wx.StaticText(self, wx.ID_ANY, "Videos")
         label_8.SetForegroundColour(wx.Colour(0, 0, 0))
         label_8.SetFont(wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Calibri"))
         grid_sizer_1.Add(label_8, 0, wx.LEFT, 20)
-        grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add((0, 0), 0, 0, 0)
-        grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
         grid_sizer_1.Add((0, 0), 0, 0, 0)
@@ -329,11 +342,13 @@ class root_frame(wx.Frame):
         scan_request = self.button_4.GetValue()
         cs_images_chkbox = self.checkbox_3.GetValue()
         cs_videos_chkbox = self.checkbox_4.GetValue()
-        cs_scan_type = self.radio_btn_4.GetValue() 
+        cs_scan_type = self.radio_btn_4.GetValue()
+        cs_senstivity_level = self.slider_1.GetValue()
         # Getting data from Scan Now options
         if scan_request is True:
             if cs_images_chkbox is True or cs_videos_chkbox is True:
                 config.scan_details['scan_start_datetime'] = datetime.now()
+                self.frame_statusbar.SetStatusText("  Content Scan Started !")
                 if cs_scan_type is True:
                     # print("Quick Scan Mode Selected")
                     config.scan_details['scan_type'] = "quick"
@@ -357,6 +372,7 @@ class root_frame(wx.Frame):
         if scan_request is False:
             config.scan_details['scan_end_datetime'] = datetime.now()
             config.thread_stop = True
+            self.frame_statusbar.SetStatusText("  Content Scan Stopped !")
             # print("Scan Stopped")
             self.progressbar.SetValue(0)
             self.radio_btn_4.Enable()
@@ -365,6 +381,9 @@ class root_frame(wx.Frame):
             self.checkbox_4.Enable()
             self.progressbar.Hide()
             self.button_4.SetLabel("Scan Now")
+
+    def video_sensitivity(self, event):
+    	print("Video Sensitivity Selected")
 
     def scan_daily_schedule(self, event): 
 
@@ -471,6 +490,12 @@ class root_frame(wx.Frame):
         print("Event handler 'realtime_processing' not implemented!")
         event.Skip()
 
+    def statusbar_update(self):
+    	while(config.thread_stop is False): 
+    		filename = config.statusbar_update.get()
+    		self.frame_statusbar.SetStatusText("  Current File : {}".format(filename))
+    	print(config.statusbar_update.qsize())
+
     def scanner_interface(self,scan_type):
         print("Control reached to Scanner Interface.")
         scanner_obj = Scanner()
@@ -481,7 +506,9 @@ class root_frame(wx.Frame):
         	scanner_thread = threading.Thread(target=scanner_obj.QuickScan, name="scanner_thread", daemon=True)
         prediction_thread = threading.Thread(target=scanner_obj.Prediction, name="prediction_thread", daemon=True)
         quarantine_thread = threading.Thread(target=scanner_obj.Quarantine, name="quarantine_thread", daemon=True)
+        statusbar_thread = threading.Thread(target=self.statusbar_update, name="statusbar_thread", daemon=True)
         #Start thread
+        statusbar_thread.start()
         scanner_thread.start()
         prediction_thread.start()
         quarantine_thread.start()
@@ -491,6 +518,8 @@ class root_frame(wx.Frame):
         quarantine_thread.join()
         config.scan_details['scan_end_datetime'] = datetime.now()
         print("Processing Finished.")
+        wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nScan Start Time : {}\nScan End Time : {}".format(config.scan_details['total_images_scanned'],config.scan_details['total_explicit_images'],config.scan_details['scan_start_datetime'],config.scan_details['scan_end_datetime']), "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
+        self.frame_statusbar.SetStatusText("  Content Scan Finished !")
         self.button_4.SetValue(False)
         self.progressbar.SetValue(0)
         self.radio_btn_4.Enable()
@@ -499,9 +528,8 @@ class root_frame(wx.Frame):
         self.checkbox_4.Enable()
         self.progressbar.Hide()
         self.button_4.SetLabel("Scan Now")
-        # 
+        scan_data.send_scan_results(config.scan_details)
         # wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nVideos Scanned : \nExplicit Videos Found : ".format(config.scan_details['total_images_scanned'],config.scan_details['total_explicit_images']), "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
-        wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nScan Start Time : {}\nScan End Time : {}".format(config.scan_details['total_images_scanned'],config.scan_details['total_explicit_images'],config.scan_details['scan_start_datetime'],config.scan_details['scan_end_datetime']), "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
 
 # # end of class root_frame
 class MyApp(wx.App):
