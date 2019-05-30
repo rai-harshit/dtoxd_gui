@@ -12,6 +12,8 @@ import threading
 from scanner_main import Scanner
 import config
 import sys
+import time
+from datetime import datetime
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -305,6 +307,9 @@ class root_frame(wx.Frame):
     def quit(self, event):
         # self.Close()
         config.thread_stop = True
+        if 'scan_end_datetime' not in config.scan_details:
+        	config.scan_details['scan_end_datetime'] = datetime.now()
+        print(config.scan_details)
         wx.CallAfter(self.Close)
 
     def documentation_help(self, event):
@@ -328,11 +333,14 @@ class root_frame(wx.Frame):
         # Getting data from Scan Now options
         if scan_request is True:
             if cs_images_chkbox is True or cs_videos_chkbox is True:
+                config.scan_details['scan_start_datetime'] = datetime.now()
                 if cs_scan_type is True:
-                    print("Quick Scan Mode Selected")
+                    # print("Quick Scan Mode Selected")
+                    config.scan_details['scan_type'] = "quick"
                     interface_thread = threading.Thread(target=self.scanner_interface,args=("quick",),daemon=True)
                 else:
-                    print("Deep Scan Mode Selected")
+                    # print("Deep Scan Mode Selected")
+                    config.scan_details['scan_type'] = "deep"
                     interface_thread = threading.Thread(target=self.scanner_interface,args=("deep",),daemon=True)
                 interface_thread.start()
                 self.progressbar.Pulse()
@@ -347,8 +355,9 @@ class root_frame(wx.Frame):
                 self.button_4.SetValue(False)
                 wx.MessageBox("Select 'Images' or 'Videos' or both options to begin the scan.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
         if scan_request is False:
+            config.scan_details['scan_end_datetime'] = datetime.now()
             config.thread_stop = True
-            print("Scan Stopped")
+            # print("Scan Stopped")
             self.progressbar.SetValue(0)
             self.radio_btn_4.Enable()
             self.radio_btn_5.Enable()
@@ -479,7 +488,8 @@ class root_frame(wx.Frame):
         #Join thread
         scanner_thread.join()
         prediction_thread.join()
-        quarantine_thread.join()	
+        quarantine_thread.join()
+        config.scan_details['scan_end_datetime'] = datetime.now()
         print("Processing Finished.")
         self.button_4.SetValue(False)
         self.progressbar.SetValue(0)
@@ -489,17 +499,11 @@ class root_frame(wx.Frame):
         self.checkbox_4.Enable()
         self.progressbar.Hide()
         self.button_4.SetLabel("Scan Now")
+        # 
+        # wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nVideos Scanned : \nExplicit Videos Found : ".format(config.scan_details['total_images_scanned'],config.scan_details['total_explicit_images']), "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
+        wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nScan Start Time : {}\nScan End Time : {}".format(config.scan_details['total_images_scanned'],config.scan_details['total_explicit_images'],config.scan_details['scan_start_datetime'],config.scan_details['scan_end_datetime']), "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
 
-
-class Report(wx.Frame):
-    #Class to generate report
-    def __init__(self,parent,id):
-        wx.Frame.__init__(self, parent, id, 'New Window', size=(400,300))
-        wx.Frame.CenterOnScreen(self)
-        #self.new.Show(False)
-
-# end of class root_frame
-
+# # end of class root_frame
 class MyApp(wx.App):
     def OnInit(self):
         self.frame = root_frame(None, wx.ID_ANY, "")

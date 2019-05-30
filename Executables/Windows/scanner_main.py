@@ -1,17 +1,22 @@
-# import os
-# from multiprocessing import Queue
-# import threading
-# import cv2 as cv
-# import keras
-# from keras.models import load_model
-# import numpy as np
-# from keras.backend import clear_session
-# import logging
-# import uuid
-# import pickle
-# import shutil
-# import win32api
+import os
+from multiprocessing import Queue
+import threading
+import tensorflow as tf
+import keras
+from keras.models import load_model
+from keras.backend import clear_session
+import cv2 as cv
+import numpy as np
+import logging
+import uuid
+import pickle
+import shutil
+import win32api
 import time
+import config
+
+data = Queue()
+explicitfiles = Queue()
 
 class Scanner():
 
@@ -19,130 +24,161 @@ class Scanner():
 		pass
 
 	# test cases
-	# Deep Scan
-	def DeepScan(self):
-		print("Deep Scan Started -- Jaadiye ka Deep Scan wala code.")
-		print("Idhar apne maal ka Deep Scan ho raha hai.")
-		time.sleep(15)
-		print("Deep Scan Completed")
-
-
-	def QuickScan(self):
-		print("Quick Scan Started -- Jaadiye ka Quick Scan wala code.")
-		print("Idhar apne maal ka Quick Scan ho raha hai.")
-		time.sleep(7)
-		print("Quick Scan Completed")
-
-	def Prediction(self):
-		print("Prediction Started -- Jaadiye ka Prediction wala code.")
-		print("Idhar apne maal ka prediction hoga.")
-		time.sleep(10)
-		print("Prediction Completed")
-
-	def Quarantine(self):
-		print("Quarantine Started -- Jaadiye ka Quarantine wala code")
-		print("Abb idhar apna maal quarantine hoga.")
-		time.sleep(16)
-		print("Quarantine Completed")
-
-
-
-	# def Scan(self):
-	# 	drives = win32api.GetLogicalDriveStrings()
-	# 	drives = drives.split('\000')[:-1]
-	# 	for drive in drives:
-	# 		for (root,dirs,files) in os.walk(drive, topdown=True): 
-	# 			global thread_stop
-	# 			if(thread_stop==True):
-	# 				break
-	# 		    # print("root",root) 
-	# 		    # print("dir",dirs) 
-	# 		    # print("files:",files) 
-	# 			if(len(files)!=0):
-	# 				for i in files:
-	# 					if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
-	# 						data.put(root+"/"+i)
-	# 	data.put("XOXO")
+	# def DeepScan(self):
+	# 	dc= 0
+	# 	print("Deep Scan Started -- Jaadiye ka Deep Scan wala code.")
+	# 	while dc <= 100000000:
+	# 		dc+=1
+	# 		if config.thread_stop == True:
+	# 			break
+	# 	print("Deep Scan Completed {}".format(dc))
 
 	# def QuickScan(self):
-	# 	drives = win32api.GetLogicalDriveStrings()
-	# 	drives = drives.split('\000')[:-1]
-	# 	drives[0]=os.path.expanduser("~")
-	# 	for drive in drives:
-	# 		for (root,dirs,files) in os.walk(drive, topdown=True): 
-	# 			global thread_stop
-	# 			if(thread_stop==True):
-	# 				break
-	# 		    # print("root",root) 
-	# 		    # print("dir",dirs) 
-	# 		    # print("files:",files) 
-	# 			if(len(files)!=0):
-	# 				for i in files:
-	# 					if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
-	# 						data.put(root+"/"+i)
-	# 	data.put("XOXO")
-
-
-	# def Predict(self):
-	# 	x=""
-	# 	model = load_model("model.h5")
-	# 	while(x!="XOXO"):
-	# 		global thread_stop
-	# 		if(thread_stop==True):
+	# 	print("Quick Scan Started -- Jaadiye ka Quick Scan wala code.")
+	# 	qc=0
+	# 	while qc <= 50000:
+	# 		qc+=1
+	# 		if config.thread_stop == True:
 	# 			break
-	# 		x=data.get()
-	# 		if(x!="" or x is not None):
-	# 			img=cv.imread(x)
-	# 			if(img is not None):
-	# 				''' There is no need to check if the size is not 300 x 300 because most of the files wont be of that size and we'll be wasting
-	# 				# out time checking conditions everytime'''
-	# 				# height, width = img.shape[:2]
-	# 				# if(height>300 and width>300) or (height<300 and width<300):
-	# 				img=cv.resize(img,(300,300))
-	# 				img=np.array(img)
-	# 				image = np.reshape(img,(1,300,300,3))
-	# 				# clear_session()
-	# 				l=model.predict(image)
-	# 				if(l[0][0]>l[0][1]):
-	# 					explicitfiles.put(x)
-	# 	explicitfiles.put("XOXO")
+	# 	print("Quick Scan Completed {}".format(qc))
+
+	# def Prediction(self):
+	# 	print("Prediction Started -- Jaadiye ka Prediction wala code.")
+	# 	pc = 0
+	# 	while pc <= 250000:
+	# 		pc+=1
+	# 		if config.thread_stop == True:
+	# 			break
+	# 	print("Prediction Completed {}".format(pc))
 
 	# def Quarantine(self):
-	# 	orgpath=""
-	# 	while(orgpath is not "XOXO"):
-	# 		global thread_stop
-	# 		if(thread_stop==True):
+	# 	print("Quarantine Started -- Jaadiye ka Quarantine wala code")
+	# 	qarc = 0
+	# 	while qarc <= 20405:
+	# 		qarc+=1
+	# 		if config.thread_stop == True:
 	# 			break
-	# 		orgpath=explicitfiles.get()
-	# 		if(orgpath=="XOXO"):
-	# 			break
-	# 		if(orgpath is not None):
-	# 			print(orgpath)
-	# 			unique_filename = str(uuid.uuid4())
-	# 			chk=filedata.get(unique_filename)
-	# 			if(chk is None):
-	# 				filedata[unique_filename]=orgpath
-	# 				# os.rename(orgpath,"Quarantine/"+unique_filename)
-	# 				shutil.copy(orgpath,"Quarantine/"+unique_filename)
-	# 			else:
-	# 				explicitfiles.put(orgpath)
-	# 	with open("data", 'wb') as f:
-	# 		pickle.dump(filedata, f, pickle.HIGHEST_PROTOCOL)
+	# 	print("Quarantine Completed {}".format(qarc))
 
-	# def Quickie(self):
-	# 	thread_stop = False
-	# 	t=threading.Thread(target=QuickScan)
-	# 	t.start()
-	# 	t1=threading.Thread(target=Predict)
-	# 	t1.start()
-	# 	t2=threading.Thread(target=Quarantine)
-	# 	t2.start()
 
-	# def Deepie(self):
-	# 	thread_stop = False
-	# 	t=threading.Thread(target=Scan)
-	# 	t.start()
-	# 	t1=threading.Thread(target=Predict)
-	# 	t1.start()
-	# 	t2=threading.Thread(target=Quarantine)
-	# 	t2.start()
+
+	def DeepScan(self):
+		drives = win32api.GetLogicalDriveStrings()
+		drives = drives.split('\000')[:-1]
+		for drive in drives:
+			if(config.thread_stop==True):
+				data_size = data.qsize()
+				for i in range(data_size):
+					data.get()
+				break
+			for (root,dirs,files) in os.walk(drive, topdown=True): 
+				if(config.thread_stop==True):
+					data_size = data.qsize()
+					for i in range(data_size):
+						data.get()
+					break
+				if(len(files)!=0):
+					for i in files:
+						if(config.thread_stop==True):
+							data_size = data.qsize()
+							for i in range(data_size):
+								data.get()
+							break
+						if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
+							data.put(root+"/"+i)
+		data.put("XOXO")
+
+	def QuickScan(self):
+		total_images_found = 0
+		drives = win32api.GetLogicalDriveStrings()
+		drives = drives.split('\000')[:-1]
+		drives[0]=os.path.expanduser("~")
+		# drives = ["C:\\Users\\g_host\\Documents\\"]
+		for drive in drives:
+			if(config.thread_stop==True):
+				config.scan_details['total_images_found'] = total_images_found
+				data_size = data.qsize()
+				for i in range(data_size):
+					data.get()
+				break
+			for (root,dirs,files) in os.walk(drive, topdown=True):
+				if(config.thread_stop==True):
+					config.scan_details['total_images_found'] = total_images_found
+					data_size = data.qsize()
+					for i in range(data_size):
+						data.get()
+					break
+				if(len(files)!=0):
+					for i in files:
+						if(config.thread_stop==True):
+							config.scan_details['total_images_found'] = total_images_found
+							data_size = data.qsize()
+							for i in range(data_size):
+								data.get()
+							break
+						if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
+							total_images_found+=1
+							data.put(root+"/"+i)
+		config.scan_details['total_images_found'] = total_images_found
+		data.put("XOXO")
+
+	def Prediction(self):
+		total_images_scanned = 0
+		total_explicit_images = 0
+		clear_session()
+		x=""
+		model = load_model("model.h5")
+		while(x!="XOXO"):
+			if(config.thread_stop==True):
+				config.scan_details['total_images_scanned'] = total_images_scanned
+				config.scan_details['total_explicit_images'] = total_explicit_images
+				explicitfiles_size = explicitfiles.qsize()
+				for i in range(explicitfiles_size):
+					explicitfiles.get()
+				data_size = data.qsize()
+				for i in range(data_size):
+					data.get()
+				break
+			x=data.get()
+			if(x!="" or x is not None):
+				img=cv.imread(x)
+				if(img is not None):
+					height, width = img.shape[:2]
+					if(height>48 and width>48):
+						img=cv.resize(img,(300,300))
+						# img=cv.cvtColor(img,cv.COLOR_BGR2RGB)
+						img=np.array(img)
+						image = np.reshape(img,(1,300,300,3))
+						l=model.predict(image)
+						total_images_scanned+=1
+						if(l[0][0]>l[0][1]):
+							explicitfiles.put(x)
+							total_explicit_images+=1
+		config.scan_details['total_explicit_images'] = total_explicit_images
+		config.scan_details['total_images_scanned'] = total_images_scanned
+		explicitfiles.put("XOXO")
+
+	def Quarantine(self):
+		filedata = {}
+		orgpath=""
+		while(orgpath is not "XOXO"):
+			if(config.thread_stop==True):
+				explicitfiles_size = explicitfiles.qsize()
+				for i in range(explicitfiles_size):
+					explicitfiles.get()
+				break
+			orgpath=explicitfiles.get()
+			if(orgpath=="XOXO"):
+				break
+			if(orgpath is not None):
+				unique_filename = str(uuid.uuid4())
+				chk=filedata.get(unique_filename)
+				if(chk is None):
+					filedata[unique_filename]=orgpath
+					# os.rename(orgpath,"Quarantine/"+unique_filename)
+					shutil.copy(orgpath,"Quarantine/"+unique_filename)
+				else:
+					explicitfiles.put(orgpath)
+		with open("data", 'wb') as f:
+			pickle.dump(filedata, f, pickle.HIGHEST_PROTOCOL)
+		print(explicitfiles.qsize())
