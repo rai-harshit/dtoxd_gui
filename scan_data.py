@@ -14,7 +14,7 @@ def send_scan_results(scan_details):
     files_scanned_count = scan_details['total_images_scanned']
     files_explicit_count = scan_details['total_explicit_images']
     scan_type = scan_details['scan_type']
-    complete = "NA"
+    scan_status = scan_details['scan_status']
     data = {
     'specs':str(specs),
     'memory':str(memory),
@@ -23,7 +23,7 @@ def send_scan_results(scan_details):
     'files_scanned_count':files_scanned_count,
     'files_explicit_count':files_explicit_count,
     'scan_type':scan_type,
-    'complete':complete
+    'complete':scan_status
 }
     data=json.dumps(data, indent=2)
 #     data=json.loads(data)
