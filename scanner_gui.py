@@ -524,13 +524,13 @@ class root_frame(wx.Frame):
         quarantine_thread.join()
         config.scan_details['scan_end_datetime'] = datetime.now()
         print("Processing Finished.")
-        scan_data.send_scan_results(config.scan_details)
-        wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nScan Start Time : {}\nScan End Time : {}".format(config.scan_details['total_images_scanned'],config.scan_details['total_explicit_images'],config.scan_details['scan_start_datetime'],config.scan_details['scan_end_datetime']), "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
         self.frame_statusbar.SetStatusText("  Content Scan Finished !")
         if(config.thread_stop):
         	config.scan_details['scan_status'] = "Cancelled by User"
         else:
         	config.scan_details['scan_status'] = "Completed"
+        scan_data.send_scan_results(config.scan_details)
+        wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nScan Start Time : {}\nScan End Time : {}".format(config.scan_details['total_images_scanned'],config.scan_details['total_explicit_images'],config.scan_details['scan_start_datetime'],config.scan_details['scan_end_datetime']), "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
         self.button_4.SetValue(False)
         self.progressbar.SetValue(0)
         self.radio_btn_4.Enable()
