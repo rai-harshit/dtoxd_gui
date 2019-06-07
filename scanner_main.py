@@ -14,6 +14,9 @@ import shutil
 import win32api
 import time
 import config
+import shlex
+import subprocess
+import re
 
 image_data = Queue()
 video_data = Queue()
@@ -112,16 +115,17 @@ class Scanner():
 						if cs_images_chkbox:
 							if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
 								image_data.put(root+"/"+i)
-								# print(root+"/"+i)
 								total_images_found+=1
 						if cs_videos_chkbox:
 							if(i.endswith(".mp4") or i.endswith(".mkv") or i.endswith(".avi") or i.endswith(".flv")):
 								video_data.put(root+"/"+i)
-								# print(root+"/"+i)
 								total_videos_found+=1
-
-		image_data.put("XOXO")
-		video_data.put("XOXO")
+		if cs_images_chkbox:
+			config.scan_details['total_images_found'] = total_images_found
+			image_data.put("XOXO")
+		if cs_videos_chkbox:
+			config.scan_details['tatal_videos_found'] = total_videos_found
+			video_data.put("XOXO")
 
 	def QuickScan(self,cs_images_chkbox,cs_videos_chkbox):
 		total_images_found = 0
@@ -178,26 +182,25 @@ class Scanner():
 						if cs_videos_chkbox:
 							if(i.endswith(".mp4") or i.endswith(".mkv") or i.endswith(".avi") or i.endswith(".flv")):
 								video_data.put(root+"/"+i)
-								# print(root+"/"+i)
+								print(root+"/"+i)
 								total_videos_found+=1
-		config.scan_details['total_images_found'] = total_images_found
-		config.scan_details['tatal_videos_found'] = total_videos_found
-		image_data.put("XOXO")
-		video_data.put("XOXO")
+		if cs_images_chkbox:
+			config.scan_details['total_images_found'] = total_images_found
+			image_data.put("XOXO")
+		if cs_videos_chkbox:
+			config.scan_details['tatal_videos_found'] = total_videos_found
+			video_data.put("XOXO")
 
 	def FramesExtraction(self,sensitivity_level):
 		filename = ""
-		if sensitivity_level==0:
-			statement = ""
-		else:
-			statement = ""
 		while(filename!="XOXO"):
 			if(config.thread_stop==True):
-				config.scan_details['total_images_scanned'] = total_images_scanned
-				config.scan_details['total_explicit_images'] = total_explicit_images
+				config.scan_details['total_images_scanned'] = config.total_images_scanned
+				config.scan_details['total_explicit_images'] = config.total_explicit_images
 				explicitfiles_size = explicitfiles.qsize()
 				image_queue_size = image_data.qsize()
 				video_queue_size = video_data.qsize()
+				video_frames_size = video_frames.qsize()
 				if(explicitfiles_size > 0):
 					for i in range(explicitfiles_size):
 						explicitfiles.get()
@@ -207,39 +210,73 @@ class Scanner():
 				if(cs_videos_chkbox is True and video_queue_size > 0):
 					for i in range(video_queue_size):
 						video_data.get()
+				if(cs_videos_chkbox is True and video_frames_size > 0):
+					for i in range(video_frames_size):
+						video_frames.get()
 				break
 			filename = video_data.get()
+			print("Filename : {}".format(filename))
+			if sensitivity_level==0:
+				base_cmd = "ffmpeg -v error -hide_banner -i {} -ignore_editlist 0 -map 0:v:0 -c copy -f null -".format(filename)
+				args = shlex.split(base_cmd)
+				vid_info_proc = subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+				print(vid_info_proc.communicate())
+				vid_info = vid_info_proc.communicate()[0].decode("utf-8")
+				vd = re.findall("time=(.+?) bitrate=",vid_info)[-1].strip().split(":")
+				time_multiplier = [3600,60,1]
+				video_duration = 0
+				for i in range(3):
+					video_duration+=time_multiplier[i]*float(vd[i])
+				# Considering we are extracting 25 frames every video.
+				frames_to_ext = 30
+				interval = float("%.2f"%(video_duration/frames_to_ext))
+				seek_timestamps = []
+				for i in range(frames_to_ext):
+					seek_timestamps.append((i+1)*interval)
+				cmd = "ffmpeg "
+				for c in range(frames_to_ext):
+					statement = " -v quiet -ss {} -i {} -vframes 1 -f image2pipe -s 300x300 -map {}:v:0 -pix_fmt bgr24 -vcodec rawvideo - ".format(seek_timestamps[c],filename,c)
+					cmd += statement
+				s1 = subprocess.Popen(cmd, stdout=subprocess.PIPE,stdin=subprocess.DEVNULL)
+				while True:
+					if(config.thread_stop==True):
+						config.scan_details['total_images_scanned'] = config.total_images_scanned
+						config.scan_details['total_explicit_images'] = config.total_explicit_images
+						explicitfiles_size = explicitfiles.qsize()
+						image_queue_size = image_data.qsize()
+						video_queue_size = video_data.qsize()
+						video_frames_size = video_frames.qsize()
+						if(explicitfiles_size > 0):
+							for i in range(explicitfiles_size):
+								explicitfiles.get()
+						if(cs_images_chkbox is True and image_queue_size > 0):
+							for i in range(image_queue_size):
+								image_data.get()
+						if(cs_videos_chkbox is True and video_queue_size > 0):
+							for i in range(video_queue_size):
+								video_data.get()
+						if(cs_videos_chkbox is True and video_frames_size > 0):
+							for i in range(video_frames_size):
+								video_frames.get()
+						break
+					try:
+						f = s1.stdout.read(270000)
+						frame = frombuffer(f,dtype=np.uint8).reshape((1,300,300,3))
+						video_frames.put(frame)
+					except ValueError as ve:
+						print(ve)
+						break
+
+			else:
+				pass
 			# Find some property of every video file using which we can loop over and extract frames.
 			# Once you found the propoerty, iterate over it and extract frames till that property is false.
-			while("some_condition_about_every_video_file"):
-				if(config.thread_stop==True):
-					config.scan_details['total_images_scanned'] = total_images_scanned
-					config.scan_details['total_explicit_images'] = total_explicit_images
-					explicitfiles_size = explicitfiles.qsize()
-					image_queue_size = image_data.qsize()
-					video_queue_size = video_data.qsize()
-					if(explicitfiles_size > 0):
-						for i in range(explicitfiles_size):
-							explicitfiles.get()
-					if(cs_images_chkbox is True and image_queue_size > 0):
-						for i in range(image_queue_size):
-							image_data.get()
-					if(cs_videos_chkbox is True and video_queue_size > 0):
-						for i in range(video_queue_size):
-							video_data.get()
-					break
-				
-				frame = "some_extraction_statement_here"
-				video_frames.put(frame)
+
 			video_frames.put("-/-/-/---O---/-/-/-{}".format(filename))	
 
 
 	def Prediction(self,cs_images_chkbox,cs_videos_chkbox):
-		total_images_scanned = 0
-		total_explicit_images = 0
 		if cs_videos_chkbox:
-			total_videos_scanned = 0
-			total_explicit_videos = 0
 			explicit_frames_in_video = 0
 		clear_session()
 		model = load_model("model.h5")
@@ -247,10 +284,10 @@ class Scanner():
 			x=""
 			while(x!="XOXO"):
 				if(config.thread_stop==True):
-					config.scan_details['total_images_scanned'] = total_images_scanned
-					config.scan_details['total_explicit_images'] = total_explicit_images
-					# config.scan_details['total_videos_scanned'] = total_videos_scanned
-					# config.scan_details['total_explicit_videos'] = total_explicit_videos
+					config.scan_details['total_images_scanned'] = config.total_images_scanned
+					config.scan_details['total_explicit_images'] = config.total_explicit_images
+					# config.scan_details['total_videos_scanned'] = config.total_videos_scanned
+					# config.scan_details['total_explicit_videos'] = config.total_explicit_videos
 					explicitfiles_size = explicitfiles.qsize()
 					image_queue_size = image_data.qsize()
 					video_queue_size = video_data.qsize()
@@ -266,6 +303,7 @@ class Scanner():
 					break
 				x=image_data.get()
 				if(x!="" or x is not None):
+					print(x)
 					img=cv.imread(x)
 					if(img is not None):
 						height, width = img.shape[:2]
@@ -275,22 +313,22 @@ class Scanner():
 							img=np.array(img)
 							image = np.reshape(img,(1,300,300,3))
 							l=model.predict(image)
-							total_images_scanned+=1
+							config.total_images_scanned+=1
 							if(l[0][0]>l[0][1]):
 								explicitfiles.put(x)
-								total_explicit_images+=1
-			config.scan_details['total_explicit_images'] = total_explicit_images
-			config.scan_details['total_images_scanned'] = total_images_scanned
+								config.total_explicit_images+=1
+			config.scan_details['total_explicit_images'] = config.total_explicit_images
+			config.scan_details['total_images_scanned'] = config.total_images_scanned
 			if cs_videos_chkbox is False:
 				explicitfiles.put("XOXO")
 		if cs_videos_chkbox:
 			y = ""
 			while(y!="XOXO"):
 				if(config.thread_stop==True):
-					config.scan_details['total_images_scanned'] = total_images_scanned
-					config.scan_details['total_explicit_images'] = total_explicit_images
-					config.scan_details['total_videos_scanned'] = total_videos_scanned
-					config.scan_details['total_explicit_videos'] = total_explicit_videos
+					config.scan_details['total_images_scanned'] = config.total_images_scanned
+					config.scan_details['total_explicit_images'] = config.total_explicit_images
+					config.scan_details['total_videos_scanned'] = config.total_videos_scanned
+					config.scan_details['total_explicit_videos'] = config.total_explicit_videos
 					explicitfiles_size = explicitfiles.qsize()
 					image_queue_size = image_data.qsize()
 					video_queue_size = video_data.qsize()
@@ -310,7 +348,7 @@ class Scanner():
 					break
 				if "-/-/-/---O---/-/-/-" in y:
 					videopath = y[19:]
-					total_videos_scanned+=1
+					config.total_videos_scanned+=1
 					if explicit_frames_in_video > 10:
 						explicitfiles.put(videopath)
 					explicit_frames_in_video = 0
@@ -318,8 +356,8 @@ class Scanner():
 				m=model.predict(y)
 				if(m[0][0]>m[0][1]):
 					explicit_frames_in_video+=1
-			config.scan_details['total_videos_scanned'] = total_videos_scanned
-			config.scan_details['total_explicit_videos'] = total_explicit_videos
+			config.scan_details['total_videos_scanned'] = config.total_videos_scanned
+			config.scan_details['total_explicit_videos'] = config.total_explicit_videos
 			explicitfiles.put("XOXO")
 
 	def Quarantine(self):

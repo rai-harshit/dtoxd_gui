@@ -80,7 +80,7 @@ class root_frame(wx.Frame):
         self.button_3 = wx.Button(self, wx.ID_ANY, "OK")
         self.button_2 = wx.Button(self, wx.ID_ANY, "Cancel")
         self.button_1 = wx.Button(self, wx.ID_ANY, "Apply")
-        self.frame_statusbar = self.CreateStatusBar(1, wx.STB_ELLIPSIZE_MIDDLE)
+        self.frame_statusbar = self.CreateStatusBar(3, wx.STB_ELLIPSIZE_MIDDLE)
 
         self.__set_properties()
         self.__do_layout()
@@ -106,6 +106,7 @@ class root_frame(wx.Frame):
         self.SetIcon(_icon)
         self.SetBackgroundColour(wx.Colour(240, 240, 240))
         self.SetFocus()
+        self.frame_statusbar.SetStatusWidths([400, 125, 160])
         self.radio_btn_4.SetValue(1)
         self.radio_btn_1.SetFocus()
         self.radio_btn_1.SetValue(1)
@@ -139,7 +140,9 @@ class root_frame(wx.Frame):
         self.button_5.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
         self.button_5.Enable(False)
         self.hyperlink_1.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Calibri"))
-        self.frame_statusbar.SetStatusText("  Scanner Ready !")
+        frame_statusbar_fields = [" Scanner Ready !", " Files Scanned : 0", " Explicit Files Found: 0"]
+        for i in range(len(frame_statusbar_fields)):
+            self.frame_statusbar.SetStatusText(frame_statusbar_fields[i], i)
         # end wxGlade
 
     def __do_layout(self):
@@ -346,19 +349,18 @@ class root_frame(wx.Frame):
         cs_images_chkbox = self.checkbox_3.GetValue()
         cs_videos_chkbox = self.checkbox_4.GetValue()
         cs_scan_type = self.radio_btn_4.GetValue()
-        cs_senstivity_level = self.slider_1.GetValue()
-        print(cs_senstivity_level)
+        cs_sensitivity_level = self.slider_1.GetValue()
         # Getting data from Scan Now options
         if scan_request is True:
             if cs_images_chkbox is True or cs_videos_chkbox is True:
                 config.scan_details['scan_start_datetime'] = datetime.now()
-                self.frame_statusbar.SetStatusText("  Content Scan Started !")
+                self.frame_statusbar.SetStatusText(" Searching media files on your machine !")
                 if cs_scan_type is True:
                     config.scan_details['scan_type'] = "quick"
-                    interface_thread = threading.Thread(target=self.scanner_interface,args=("quick",cs_images_chkbox,cs_videos_chkbox,cs_senstivity_level,),daemon=True)
+                    interface_thread = threading.Thread(target=self.scanner_interface,args=("quick",cs_images_chkbox,cs_videos_chkbox,cs_sensitivity_level,),daemon=True)
                 else:
                     config.scan_details['scan_type'] = "deep"
-                    interface_thread = threading.Thread(target=self.scanner_interface,args=("deep",cs_images_chkbox,cs_videos_chkbox,cs_senstivity_level,),daemon=True)
+                    interface_thread = threading.Thread(target=self.scanner_interface,args=("deep",cs_images_chkbox,cs_videos_chkbox,cs_sensitivity_level,),daemon=True)
                 interface_thread.start()
                 self.progressbar.Pulse()
                 #Disabling all the Radio Buttons and Checkboxes from Content Scanner
@@ -495,7 +497,11 @@ class root_frame(wx.Frame):
     def statusbar_update(self):
         while(config.thread_stop is False): 
             filename = config.statusbar_update.get()
-            self.frame_statusbar.SetStatusText("  Current File : {}".format(filename))
+            # self.frame_statusbar.SetStatusText("  Current File : {}".format(filename))
+            frame_statusbar_fields = [" Current File : {}".format(filename), " Files Scanned : {}".format(config.total_images_scanned+config.total_videos_scanned), " Explicit Files Found: {}".format(config.total_explicit_images+config.total_explicit_videos)]
+            for i in range(len(frame_statusbar_fields)):
+                self.frame_statusbar.SetStatusText(frame_statusbar_fields[i], i)
+        
         if config.thread_stop == True:
             statusbar_q_size = config.statusbar_update.qsize()
             for i in range(statusbar_q_size):
@@ -506,11 +512,11 @@ class root_frame(wx.Frame):
         scanner_obj = Scanner()
         config.thread_stop = False
         if scan_type == "deep":	    	
-        	scanner_thread = threading.Thread(target=scanner_obj.DeepScan, name="scanner_thread", args=(cs_images_chkbox,cs_videos_chkbox), daemon=True)   	
+        	scanner_thread = threading.Thread(target=scanner_obj.DeepScan, name="scanner_thread", args=(cs_images_chkbox,cs_videos_chkbox,), daemon=True)   	
         if scan_type == "quick":
-        	scanner_thread = threading.Thread(target=scanner_obj.QuickScan, name="scanner_thread", args=(cs_images_chkbox,cs_videos_chkbox), daemon=True)
-        frame_extraction_thread = threading.Thread(target=scanner_obj.FramesExtraction, name="frame_extraction_thread", args=(sensitivity_level), daemon=True)
-        prediction_thread = threading.Thread(target=scanner_obj.Prediction, name="prediction_thread", args=(cs_images_chkbox,cs_videos_chkbox), daemon=True)
+        	scanner_thread = threading.Thread(target=scanner_obj.QuickScan, name="scanner_thread", args=(cs_images_chkbox,cs_videos_chkbox,), daemon=True)
+        frame_extraction_thread = threading.Thread(target=scanner_obj.FramesExtraction, name="frame_extraction_thread", args=(sensitivity_level,), daemon=True)
+        prediction_thread = threading.Thread(target=scanner_obj.Prediction, name="prediction_thread", args=(cs_images_chkbox,cs_videos_chkbox,), daemon=True)
         quarantine_thread = threading.Thread(target=scanner_obj.Quarantine, name="quarantine_thread", daemon=True)
         statusbar_thread = threading.Thread(target=self.statusbar_update, name="statusbar_thread", daemon=True)
         #Start thread
@@ -518,8 +524,13 @@ class root_frame(wx.Frame):
         scanner_thread.start()
         prediction_thread.start()
         quarantine_thread.start()
+        if cs_videos_chkbox:
+            print("Frame Extraction Thread Started")
+            frame_extraction_thread.start()
         #Join thread
         scanner_thread.join()
+        if cs_videos_chkbox:
+            frame_extraction_thread.join()
         prediction_thread.join()
         quarantine_thread.join()
         config.scan_details['scan_end_datetime'] = datetime.now()
