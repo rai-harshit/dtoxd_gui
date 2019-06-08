@@ -13,6 +13,10 @@ def send_scan_results(scan_details):
     scan_end_datetime = scan_details['scan_end_datetime']
     images_scanned_count = scan_details['total_images_scanned']
     images_explicit_count = scan_details['total_explicit_images']
+    if 'total_videos_scanned' not in scan_details:
+        scan_details['total_videos_scanned'] = 0
+    if 'total_explicit_videos' not in scan_details:
+        scan_details['total_explicit_videos'] = 0
     videos_scanned_count = scan_details['total_videos_scanned']
     videos_explicit_count = scan_details['total_explicit_videos']
     scan_type = scan_details['scan_type']

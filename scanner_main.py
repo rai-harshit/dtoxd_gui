@@ -3,6 +3,7 @@ import threading
 # from multiprocessing import Queue
 import queue
 import tensorflow as tf
+tf.logging.set_verbosity(tf.logging.FATAL)
 import keras
 from keras.models import load_model
 from keras.backend import clear_session
@@ -217,7 +218,7 @@ class Scanner():
 						video_frames.get()
 				break
 			filename = video_data.get()
-			print(filename)
+			# print(filename)
 			if filename == "XOXO":
 				video_frames.put("XOXO")
 				break
@@ -227,7 +228,7 @@ class Scanner():
 					base_cmd = 'ffmpeg -hide_banner -i "{}" -ignore_editlist 0 -map 0:v:0 -c copy -f null -'.format(filename)
 					vid_info_proc = subprocess.Popen(base_cmd,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 					vid_info = vid_info_proc.communicate()[0].decode("utf-8")
-					print(vid_info)
+					# print(vid_info)
 					vd = re.findall("time=(.+?) bitrate=",vid_info)[-1].strip().split(":")
 				except:
 					print("Error occurred while probing video file.")
