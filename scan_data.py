@@ -11,8 +11,10 @@ def send_scan_results(scan_details):
     memory = virtual_memory().total/1024**3
     scan_start_datetime = scan_details['scan_start_datetime']
     scan_end_datetime = scan_details['scan_end_datetime']
-    files_scanned_count = scan_details['total_images_scanned']
-    files_explicit_count = scan_details['total_explicit_images']
+    images_scanned_count = scan_details['total_images_scanned']
+    images_explicit_count = scan_details['total_explicit_images']
+    videos_scanned_count = scan_details['total_videos_scanned']
+    videos_explicit_count = scan_details['total_explicit_videos']
     scan_type = scan_details['scan_type']
     scan_status = scan_details['scan_status']
     data = {
@@ -20,10 +22,10 @@ def send_scan_results(scan_details):
     'ram_memory':str(memory),
     'scan_start_datetime':str(scan_start_datetime),
     'scan_end_datetime':str(scan_end_datetime),
-    'scanned_images_count':str(files_scanned_count),
-    'explicit_images_count':str(files_explicit_count),
-    'scanned_videos_count':str(""),
-    'explicit_videos_count':str(""),
+    'scanned_images_count':str(images_scanned_count),
+    'explicit_images_count':str(images_explicit_count),
+    'scanned_videos_count':str(videos_scanned_count),
+    'explicit_videos_count':str(videos_explicit_count),
     'scan_type':scan_type,
     'scan_status':scan_status
 }

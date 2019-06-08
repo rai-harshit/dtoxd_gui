@@ -1,6 +1,7 @@
 import os
 import threading
-from multiprocessing import Queue
+# from multiprocessing import Queue
+import queue
 import tensorflow as tf
 import keras
 from keras.models import load_model
@@ -17,12 +18,13 @@ import config
 import shlex
 import subprocess
 import re
+from numpy.ma import frombuffer
 
-image_data = Queue()
-video_data = Queue()
-explicitfiles = Queue()
-video_frames = Queue()
-
+image_data = queue.Queue()
+video_data = queue.Queue()
+explicitfiles = queue.Queue()
+video_frames = queue.Queue()
+erroneous_files = queue.Queue()
 class Scanner():
 
 	def __init__(self):
@@ -114,11 +116,11 @@ class Scanner():
 							break
 						if cs_images_chkbox:
 							if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
-								image_data.put(root+"/"+i)
+								image_data.put(root+"\\"+i)
 								total_images_found+=1
 						if cs_videos_chkbox:
 							if(i.endswith(".mp4") or i.endswith(".mkv") or i.endswith(".avi") or i.endswith(".flv")):
-								video_data.put(root+"/"+i)
+								video_data.put(root+"\\"+i)
 								total_videos_found+=1
 		if cs_images_chkbox:
 			config.scan_details['total_images_found'] = total_images_found
@@ -176,13 +178,13 @@ class Scanner():
 							break
 						if cs_images_chkbox:
 							if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
-								image_data.put(root+"/"+i)
+								image_data.put(os.path.join(root,i))
 								# print(root+"/"+i)
 								total_images_found+=1
 						if cs_videos_chkbox:
 							if(i.endswith(".mp4") or i.endswith(".mkv") or i.endswith(".avi") or i.endswith(".flv")):
-								video_data.put(root+"/"+i)
-								print(root+"/"+i)
+								video_data.put(os.path.join(root,i))
+								# print(root+"/"+i)
 								total_videos_found+=1
 		if cs_images_chkbox:
 			config.scan_details['total_images_found'] = total_images_found
@@ -191,7 +193,7 @@ class Scanner():
 			config.scan_details['tatal_videos_found'] = total_videos_found
 			video_data.put("XOXO")
 
-	def FramesExtraction(self,sensitivity_level):
+	def FramesExtraction(self,cs_images_chkbox,cs_videos_chkbox,sensitivity_level):
 		filename = ""
 		while(filename!="XOXO"):
 			if(config.thread_stop==True):
@@ -215,64 +217,70 @@ class Scanner():
 						video_frames.get()
 				break
 			filename = video_data.get()
-			print("Filename : {}".format(filename))
+			print(filename)
+			if filename == "XOXO":
+				video_frames.put("XOXO")
+				break
+			video_frames.put("-/-/-/---O---/-/-/-{}".format(filename))	
 			if sensitivity_level==0:
-				base_cmd = "ffmpeg -v error -hide_banner -i {} -ignore_editlist 0 -map 0:v:0 -c copy -f null -".format(filename)
-				args = shlex.split(base_cmd)
-				vid_info_proc = subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-				print(vid_info_proc.communicate())
-				vid_info = vid_info_proc.communicate()[0].decode("utf-8")
-				vd = re.findall("time=(.+?) bitrate=",vid_info)[-1].strip().split(":")
+				try:
+					base_cmd = 'ffmpeg -hide_banner -i "{}" -ignore_editlist 0 -map 0:v:0 -c copy -f null -'.format(filename)
+					vid_info_proc = subprocess.Popen(base_cmd,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+					vid_info = vid_info_proc.communicate()[0].decode("utf-8")
+					print(vid_info)
+					vd = re.findall("time=(.+?) bitrate=",vid_info)[-1].strip().split(":")
+				except:
+					print("Error occurred while probing video file.")
+					erroneous_files.put(filename)
+					continue
+
 				time_multiplier = [3600,60,1]
 				video_duration = 0
 				for i in range(3):
 					video_duration+=time_multiplier[i]*float(vd[i])
-				# Considering we are extracting 25 frames every video.
+				# Considering we are extracting 30 frames every video.
 				frames_to_ext = 30
 				interval = float("%.2f"%(video_duration/frames_to_ext))
 				seek_timestamps = []
 				for i in range(frames_to_ext):
 					seek_timestamps.append((i+1)*interval)
-				cmd = "ffmpeg "
+				cmd = 'ffmpeg '
 				for c in range(frames_to_ext):
-					statement = " -v quiet -ss {} -i {} -vframes 1 -f image2pipe -s 300x300 -map {}:v:0 -pix_fmt bgr24 -vcodec rawvideo - ".format(seek_timestamps[c],filename,c)
+					statement = ' -v quiet -ss {} -i "{}" -vframes 1 -f image2pipe -s 300x300 -map {}:v:0 -pix_fmt bgr24 -vcodec rawvideo - '.format(seek_timestamps[c],filename,c)
 					cmd += statement
-				s1 = subprocess.Popen(cmd, stdout=subprocess.PIPE,stdin=subprocess.DEVNULL)
-				while True:
-					if(config.thread_stop==True):
-						config.scan_details['total_images_scanned'] = config.total_images_scanned
-						config.scan_details['total_explicit_images'] = config.total_explicit_images
-						explicitfiles_size = explicitfiles.qsize()
-						image_queue_size = image_data.qsize()
-						video_queue_size = video_data.qsize()
-						video_frames_size = video_frames.qsize()
-						if(explicitfiles_size > 0):
-							for i in range(explicitfiles_size):
-								explicitfiles.get()
-						if(cs_images_chkbox is True and image_queue_size > 0):
-							for i in range(image_queue_size):
-								image_data.get()
-						if(cs_videos_chkbox is True and video_queue_size > 0):
-							for i in range(video_queue_size):
-								video_data.get()
-						if(cs_videos_chkbox is True and video_frames_size > 0):
-							for i in range(video_frames_size):
-								video_frames.get()
-						break
-					try:
-						f = s1.stdout.read(270000)
-						frame = frombuffer(f,dtype=np.uint8).reshape((1,300,300,3))
-						video_frames.put(frame)
-					except ValueError as ve:
-						print(ve)
-						break
-
 			else:
-				pass
-			# Find some property of every video file using which we can loop over and extract frames.
-			# Once you found the propoerty, iterate over it and extract frames till that property is false.
+				print(filename)
+				cmd = 'ffmpeg -v error -skip_frame nokey -i "{}" -vsync vfr -f image2pipe -vcodec rawvideo -pix_fmt bgr24 -s 300x300 - '.format(filename) 
 
-			video_frames.put("-/-/-/---O---/-/-/-{}".format(filename))	
+			s1 = subprocess.Popen(cmd, stdout=subprocess.PIPE,stdin=subprocess.DEVNULL)
+			while True:
+				if(config.thread_stop==True):
+					config.scan_details['total_images_scanned'] = config.total_images_scanned
+					config.scan_details['total_explicit_images'] = config.total_explicit_images
+					explicitfiles_size = explicitfiles.qsize()
+					image_queue_size = image_data.qsize()
+					video_queue_size = video_data.qsize()
+					video_frames_size = video_frames.qsize()
+					if(explicitfiles_size > 0):
+						for i in range(explicitfiles_size):
+							explicitfiles.get()
+					if(cs_images_chkbox and image_queue_size > 0):
+						for i in range(image_queue_size):
+							image_data.get()
+					if(cs_videos_chkbox is True and video_queue_size > 0):
+						for i in range(video_queue_size):
+							video_data.get()
+					if(cs_videos_chkbox is True and video_frames_size > 0):
+						for i in range(video_frames_size):
+							video_frames.get()
+					break
+				try:
+					f = s1.stdout.read(270000)
+					frame = frombuffer(f,dtype=np.uint8).reshape((1,300,300,3))
+					video_frames.put(frame)
+				except ValueError as ve:
+					# print(ve)
+					break
 
 
 	def Prediction(self,cs_images_chkbox,cs_videos_chkbox):
@@ -286,8 +294,6 @@ class Scanner():
 				if(config.thread_stop==True):
 					config.scan_details['total_images_scanned'] = config.total_images_scanned
 					config.scan_details['total_explicit_images'] = config.total_explicit_images
-					# config.scan_details['total_videos_scanned'] = config.total_videos_scanned
-					# config.scan_details['total_explicit_videos'] = config.total_explicit_videos
 					explicitfiles_size = explicitfiles.qsize()
 					image_queue_size = image_data.qsize()
 					video_queue_size = video_data.qsize()
@@ -303,7 +309,7 @@ class Scanner():
 					break
 				x=image_data.get()
 				if(x!="" or x is not None):
-					print(x)
+					# print(x)
 					img=cv.imread(x)
 					if(img is not None):
 						height, width = img.shape[:2]
@@ -323,10 +329,13 @@ class Scanner():
 				explicitfiles.put("XOXO")
 		if cs_videos_chkbox:
 			y = ""
+			config.scan_details['total_images_scanned'] = config.total_images_scanned
+			config.scan_details['total_explicit_images'] = config.total_explicit_images
 			while(y!="XOXO"):
 				if(config.thread_stop==True):
-					config.scan_details['total_images_scanned'] = config.total_images_scanned
-					config.scan_details['total_explicit_images'] = config.total_explicit_images
+					if cs_images_chkbox:
+						config.scan_details['total_images_scanned'] = config.total_images_scanned
+						config.scan_details['total_explicit_images'] = config.total_explicit_images
 					config.scan_details['total_videos_scanned'] = config.total_videos_scanned
 					config.scan_details['total_explicit_videos'] = config.total_explicit_videos
 					explicitfiles_size = explicitfiles.qsize()
@@ -346,16 +355,25 @@ class Scanner():
 							for j in range(frames_queue_size):
 								video_frames.get()
 					break
-				if "-/-/-/---O---/-/-/-" in y:
-					videopath = y[19:]
-					config.total_videos_scanned+=1
-					if explicit_frames_in_video > 10:
-						explicitfiles.put(videopath)
-					explicit_frames_in_video = 0
 				y=video_frames.get()
-				m=model.predict(y)
-				if(m[0][0]>m[0][1]):
-					explicit_frames_in_video+=1
+				if type(y)==type("-/-/-/---O---/-/-/-"):
+					# print("---------------------------------STRING TYPE MATCH-------------------------")
+					videopath = y[19:]
+					config.statusbar_update.put(videopath)
+					config.total_videos_scanned+=1
+					explicit_frames_in_video = 0
+					already_pushed = False
+				else:
+					if explicit_frames_in_video > 10:
+						if already_pushed is False:
+							explicitfiles.put(videopath)
+							already_pushed = True
+							config.total_explicit_videos+=1
+						else:
+							continue
+					m=model.predict(y)
+					if(m[0][0]>m[0][1]):
+						explicit_frames_in_video+=1
 			config.scan_details['total_videos_scanned'] = config.total_videos_scanned
 			config.scan_details['total_explicit_videos'] = config.total_explicit_videos
 			explicitfiles.put("XOXO")
@@ -379,7 +397,8 @@ class Scanner():
 				if(chk is None):
 					filedata[unique_filename]=orgpath
 					# os.rename(orgpath,"Quarantine/"+unique_filename)
-					shutil.copy(orgpath,"Quarantine/"+unique_filename)
+					# shutil.copy(orgpath,"Quarantine/"+unique_filename)
+					# print("File Quarantined : {}".format(orgpath))
 				else:
 					explicitfiles.put(orgpath)
 		with open("data", 'wb') as f:

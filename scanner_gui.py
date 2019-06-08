@@ -9,7 +9,7 @@ import wx.adv
 import webbrowser
 import time
 import threading
-from scanner_main import Scanner
+# from scanner_main import Scanner
 import config
 import sys
 import time
@@ -33,7 +33,8 @@ class root_frame(wx.Frame):
         splash = wx.adv.SplashScreen( bitmap, wx.adv.SPLASH_CENTER_ON_SCREEN|wx.adv.SPLASH_TIMEOUT, 20000, self, id=wx.ID_ANY,
              				pos=wx.DefaultPosition, size=wx.DefaultSize)
         splash.Show()
-        
+        from scanner_main import Scanner #Testing
+        self.scanner_obj = Scanner()
         # Menu Bar
         self.frame_menubar = wx.MenuBar()
         wxglade_tmp_menu = wx.Menu()
@@ -452,7 +453,6 @@ class root_frame(wx.Frame):
         daily_scan_radio = self.radio_btn_1.GetValue()
         weekly_scan_radio = self.radio_btn_2.GetValue()
         monthly_scan_radio = self.radio_btn_3.GetValue()
-        # print(daily_scan_radio,weekly_scan_radio,monthly_scan_radio)
 
         if daily_scan_radio is True:
         # Getting data from Daily Scan options
@@ -462,7 +462,6 @@ class root_frame(wx.Frame):
         	f = open("preferences.log","w+")
         	f.write(str(schedule_daily_hour)+" "+str(schedule_daily_minutes)+" "+str(schedule_daily_ampm))
         	f.close()
-        	# print(schedule_daily_hour,schedule_daily_minutes,schedule_daily_ampm)
         elif weekly_scan_radio is True:
 	        # Getting data from Weekly Scan options
 	        schedule_weekly_day = self.choice_2.GetCurrentSelection()
@@ -472,7 +471,6 @@ class root_frame(wx.Frame):
 	        f = open("preferences.log","w+")
         	f.write(str(schedule_weekly_day)+" "+str(schedule_weekly_hour)+" "+str(schedule_weekly_minutes)+" "+str(schedule_weekly_ampm))
         	f.close()
-	        # print(schedule_weekly_day,schedule_weekly_hour,schedule_weekly_minutes,schedule_weekly_ampm)
         elif monthly_scan_radio is True:
 	        # Getting data from Monthly Scan options
 	        schedule_monthly_day = self.choice_3.GetCurrentSelection()
@@ -482,7 +480,6 @@ class root_frame(wx.Frame):
 	        f = open("preferences.log","w+")
         	f.write(str(schedule_monthly_day)+" "+str(schedule_monthly_hour)+" "+str(schedule_monthly_minutes)+" "+str(schedule_monthly_ampm))
         	f.close()
-	        # print(schedule_monthly_day,schedule_monthly_hour,schedule_monthly_minutes,schedule_monthly_ampm)
 
     def apply_and_close(self, event):
         config.thread_stop = True
@@ -497,7 +494,6 @@ class root_frame(wx.Frame):
     def statusbar_update(self):
         while(config.thread_stop is False): 
             filename = config.statusbar_update.get()
-            # self.frame_statusbar.SetStatusText("  Current File : {}".format(filename))
             frame_statusbar_fields = [" Current File : {}".format(filename), " Files Scanned : {}".format(config.total_images_scanned+config.total_videos_scanned), " Explicit Files Found: {}".format(config.total_explicit_images+config.total_explicit_videos)]
             for i in range(len(frame_statusbar_fields)):
                 self.frame_statusbar.SetStatusText(frame_statusbar_fields[i], i)
@@ -509,15 +505,16 @@ class root_frame(wx.Frame):
 
     def scanner_interface(self,scan_type,cs_images_chkbox,cs_videos_chkbox,sensitivity_level):
         print("Control reached to Scanner Interface.")
-        scanner_obj = Scanner()
+        # scanner_obj = Scanner()
         config.thread_stop = False
         if scan_type == "deep":	    	
-        	scanner_thread = threading.Thread(target=scanner_obj.DeepScan, name="scanner_thread", args=(cs_images_chkbox,cs_videos_chkbox,), daemon=True)   	
+        	scanner_thread = threading.Thread(target=self.scanner_obj.DeepScan, name="scanner_thread", args=(cs_images_chkbox,cs_videos_chkbox,), daemon=True)   	
         if scan_type == "quick":
-        	scanner_thread = threading.Thread(target=scanner_obj.QuickScan, name="scanner_thread", args=(cs_images_chkbox,cs_videos_chkbox,), daemon=True)
-        frame_extraction_thread = threading.Thread(target=scanner_obj.FramesExtraction, name="frame_extraction_thread", args=(sensitivity_level,), daemon=True)
-        prediction_thread = threading.Thread(target=scanner_obj.Prediction, name="prediction_thread", args=(cs_images_chkbox,cs_videos_chkbox,), daemon=True)
-        quarantine_thread = threading.Thread(target=scanner_obj.Quarantine, name="quarantine_thread", daemon=True)
+        	scanner_thread = threading.Thread(target=self.scanner_obj.QuickScan, name="scanner_thread", args=(cs_images_chkbox,cs_videos_chkbox,), daemon=True)
+        if cs_videos_chkbox:
+            frame_extraction_thread = threading.Thread(target=self.scanner_obj.FramesExtraction, name="frame_extraction_thread", args=(cs_images_chkbox,cs_videos_chkbox,sensitivity_level,), daemon=True)
+        prediction_thread = threading.Thread(target=self.scanner_obj.Prediction, name="prediction_thread", args=(cs_images_chkbox,cs_videos_chkbox,), daemon=True)
+        quarantine_thread = threading.Thread(target=self.scanner_obj.Quarantine, name="quarantine_thread", daemon=True)
         statusbar_thread = threading.Thread(target=self.statusbar_update, name="statusbar_thread", daemon=True)
         #Start thread
         statusbar_thread.start()
@@ -541,7 +538,14 @@ class root_frame(wx.Frame):
         else:
         	config.scan_details['scan_status'] = "Completed"
         scan_data.send_scan_results(config.scan_details)
-        wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nScan Start Time : {}\nScan End Time : {}".format(config.scan_details['total_images_scanned'],config.scan_details['total_explicit_images'],config.scan_details['scan_start_datetime'],config.scan_details['scan_end_datetime']), "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
+        wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nVideos Scanned : {}\nExplicit Videos Found : {}\nScan Start Time : {}\nScan End Time : {}"
+            .format(config.scan_details['total_images_scanned'],
+                config.scan_details['total_explicit_images'],
+                config.scan_details['total_videos_scanned'],
+                config.scan_details['total_explicit_videos'],
+                config.scan_details['scan_start_datetime'],
+                config.scan_details['scan_end_datetime']), 
+            "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
         self.button_4.SetValue(False)
         self.progressbar.SetValue(0)
         self.radio_btn_4.Enable()
@@ -550,8 +554,7 @@ class root_frame(wx.Frame):
         self.checkbox_4.Enable()
         self.progressbar.Hide()
         self.button_4.SetLabel("Scan Now")
-        # wx.MessageBox("Images Scanned : {}\nExplicit Images Found : {}\nVideos Scanned : \nExplicit Videos Found : ".format(config.scan_details['total_images_scanned'],config.scan_details['total_explicit_images']), "Scan Report" ,wx.OK | wx.ICON_INFORMATION)
-
+        
 # # end of class root_frame
 class MyApp(wx.App):
     def OnInit(self):
