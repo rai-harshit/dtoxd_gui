@@ -8,7 +8,9 @@ from watchdog.events import FileSystemEventHandler
 
 class MyHandler(FileSystemEventHandler):
     def on_modified(self, event):
-        print(f'event type: {event.event_type}  path : {event.src_path}')
+    	if(event.src_path.endswith('.jpg') or event.src_path.endswith('.png') or event.src_path.endswith('.mp4') or event.src_path.endswith('.jpg') or event.src_path.endswith('.bmp') ):
+    		print(event.src_path)
+        # print(f'event type: {event.event_type}  path : {event.src_path}')
 
 
 def watch(paths):
