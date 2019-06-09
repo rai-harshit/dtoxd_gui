@@ -1,5 +1,5 @@
 import sys, os, traceback, types
-import wxglade
+import scanner_gui
 # import wx
 # import wx.adv
 
@@ -30,6 +30,7 @@ def runAsAdmin(cmdLine=None, wait=True):
     python_exe = sys.executable
 
     if cmdLine is None:
+        # sys.argv = ["./wxglade.py"]
         cmdLine = [python_exe] + sys.argv
     elif type(cmdLine) not in (types.TupleType,types.ListType):
         raise ValueError("cmdLine is not a sequence.")
@@ -63,10 +64,10 @@ def test():
         print("You are an admin!", os.getpid(), "params: ", sys.argv)
         # wxglade.main()
         rc = 0
-        wxglade.hello()
-    x = input('Press Enter to exit.')
-    print(x)
-    z=input('this is end')
+        scanner_gui.dtoxd_scanner()
+    # x = input('Press Enter to exit.')
+    # print(x)
+    # z=input('this is end')
     return rc
 
 
