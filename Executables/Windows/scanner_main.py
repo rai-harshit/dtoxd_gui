@@ -222,11 +222,15 @@ class Scanner():
 			if filename == "XOXO":
 				video_frames.put("XOXO")
 				break
-			video_frames.put("-/-/-/---O---/-/-/-{}".format(filename))	
+			video_frames.put("-/-/-/---O---/-/-/-{}".format(filename))
+			startupinfo = None
+			if os.name == 'nt':
+			    startupinfo = subprocess.STARTUPINFO()
+			    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW	
 			if sensitivity_level==0:
 				try:
 					base_cmd = 'ffmpeg -hide_banner -i "{}" -ignore_editlist 0 -map 0:v:0 -c copy -f null -'.format(filename)
-					vid_info_proc = subprocess.Popen(base_cmd,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+					vid_info_proc = subprocess.Popen(base_cmd,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,startupinfo=startupinfo)
 					vid_info = vid_info_proc.communicate()[0].decode("utf-8")
 					# print(vid_info)
 					vd = re.findall("time=(.+?) bitrate=",vid_info)[-1].strip().split(":")
@@ -253,7 +257,7 @@ class Scanner():
 				print(filename)
 				cmd = 'ffmpeg -v error -skip_frame nokey -i "{}" -vsync vfr -f image2pipe -vcodec rawvideo -pix_fmt bgr24 -s 300x300 - '.format(filename) 
 
-			s1 = subprocess.Popen(cmd, stdout=subprocess.PIPE,stdin=subprocess.DEVNULL)
+			s1 = subprocess.Popen(cmd, stdout=subprocess.PIPE,stdin=subprocess.DEVNULL,startupinfo=startupinfo)
 			while True:
 				if(config.thread_stop==True):
 					config.scan_details['total_images_scanned'] = config.total_images_scanned
@@ -288,7 +292,7 @@ class Scanner():
 		if cs_videos_chkbox:
 			explicit_frames_in_video = 0
 		clear_session()
-		model = load_model("model.h5")
+		model = load_model("C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\Executables\\Windows\\dist\\dtoxd Scanner\\model.h5")
 		if cs_images_chkbox:
 			x=""
 			while(x!="XOXO"):
