@@ -31,45 +31,6 @@ class Scanner():
 	def __init__(self):
 		pass
 
-	# test cases
-	# def DeepScan(self):
-	# 	dc= 0
-	# 	print("Deep Scan Started -- Jaadiye ka Deep Scan wala code.")
-	# 	while dc <= 100000000:
-	# 		dc+=1
-	# 		if config.thread_stop == True:
-	# 			break
-	# 	print("Deep Scan Completed {}".format(dc))
-
-	# def QuickScan(self):
-	# 	print("Quick Scan Started -- Jaadiye ka Quick Scan wala code.")
-	# 	qc=0
-	# 	while qc <= 50000:
-	# 		qc+=1
-	# 		if config.thread_stop == True:
-	# 			break
-	# 	print("Quick Scan Completed {}".format(qc))
-
-	# def Prediction(self):
-	# 	print("Prediction Started -- Jaadiye ka Prediction wala code.")
-	# 	pc = 0
-	# 	while pc <= 250000:
-	# 		pc+=1
-	# 		if config.thread_stop == True:
-	# 			break
-	# 	print("Prediction Completed {}".format(pc))
-
-	# def Quarantine(self):
-	# 	print("Quarantine Started -- Jaadiye ka Quarantine wala code")
-	# 	qarc = 0
-	# 	while qarc <= 20405:
-	# 		qarc+=1
-	# 		if config.thread_stop == True:
-	# 			break
-	# 	print("Quarantine Completed {}".format(qarc))
-
-
-
 	def DeepScan(self,cs_images_chkbox,cs_videos_chkbox):
 		total_images_found = 0
 		total_videos_found = 0
@@ -292,7 +253,7 @@ class Scanner():
 		if cs_videos_chkbox:
 			explicit_frames_in_video = 0
 		clear_session()
-		model = load_model("C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\Executables\\Windows\\dist\\dtoxd Scanner\\model.h5")
+		model = load_model("C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\model.h5")
 		if cs_images_chkbox:
 			x=""
 			while(x!="XOXO"):

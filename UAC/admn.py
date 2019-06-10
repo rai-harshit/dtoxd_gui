@@ -1,5 +1,9 @@
 import sys, os, traceback, types
+<<<<<<< HEAD
 import scanner_gui
+=======
+import wxglade
+>>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 # import wx
 # import wx.adv
 
@@ -63,10 +67,17 @@ def test():
         print("You are an admin!", os.getpid(), "params: ", sys.argv)
         # wxglade.main()
         rc = 0
+<<<<<<< HEAD
         scanner_gui.dtoxd_scanner()
     # x = input('Press Enter to exit.')
     # print(x)
     # z=input('this is end')
+=======
+        wxglade.hello()
+    x = input('Press Enter to exit.')
+    print(x)
+    z=input('this is end')
+>>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
     return rc
 
 

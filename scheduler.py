@@ -24,7 +24,7 @@ def schedule_scan(schedule_type,Day,Hour,Minute,Meridiem):
     new_task.SetFlags(taskscheduler.TASK_FLAG_INTERACTIVE|taskscheduler.TASK_FLAG_RUN_ONLY_IF_LOGGED_ON)
     new_task.SetIdleWait(1,10000)
     new_task.SetComment('DTOXD Automatic Trigger')
-    new_task.SetApplicationName('C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\Executables\\Windows\\dist\\dtoxd Scanner\\dtoxd Scanner.exe')
+    new_task.SetApplicationName('C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\dtoxd Scanner.py')
     new_task.SetPriority(taskscheduler.REALTIME_PRIORITY_CLASS)
     new_task.SetCreator('dtoxd')
     new_task.SetAccountInformation(win32api.GetUserName(),None)
