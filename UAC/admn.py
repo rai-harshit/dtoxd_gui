@@ -30,7 +30,6 @@ def runAsAdmin(cmdLine=None, wait=True):
     python_exe = sys.executable
 
     if cmdLine is None:
-        # sys.argv = ["./wxglade.py"]
         cmdLine = [python_exe] + sys.argv
     elif type(cmdLine) not in (types.TupleType,types.ListType):
         raise ValueError("cmdLine is not a sequence.")
