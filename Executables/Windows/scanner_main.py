@@ -1,15 +1,9 @@
 import os
-<<<<<<< HEAD
 import threading
 # from multiprocessing import Queue
 import queue
 import tensorflow as tf
 tf.logging.set_verbosity(tf.logging.FATAL)
-=======
-from multiprocessing import Queue
-import threading
-import tensorflow as tf
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 import keras
 from keras.models import load_model
 from keras.backend import clear_session
@@ -22,7 +16,6 @@ import shutil
 import win32api
 import time
 import config
-<<<<<<< HEAD
 import shlex
 import subprocess
 import re
@@ -33,68 +26,18 @@ video_data = queue.Queue()
 explicitfiles = queue.Queue()
 video_frames = queue.Queue()
 erroneous_files = queue.Queue()
-=======
-
-data = Queue()
-explicitfiles = Queue()
-
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 class Scanner():
 
 	def __init__(self):
 		pass
 
-	# test cases
-	# def DeepScan(self):
-	# 	dc= 0
-	# 	print("Deep Scan Started -- Jaadiye ka Deep Scan wala code.")
-	# 	while dc <= 100000000:
-	# 		dc+=1
-	# 		if config.thread_stop == True:
-	# 			break
-	# 	print("Deep Scan Completed {}".format(dc))
-
-	# def QuickScan(self):
-	# 	print("Quick Scan Started -- Jaadiye ka Quick Scan wala code.")
-	# 	qc=0
-	# 	while qc <= 50000:
-	# 		qc+=1
-	# 		if config.thread_stop == True:
-	# 			break
-	# 	print("Quick Scan Completed {}".format(qc))
-
-	# def Prediction(self):
-	# 	print("Prediction Started -- Jaadiye ka Prediction wala code.")
-	# 	pc = 0
-	# 	while pc <= 250000:
-	# 		pc+=1
-	# 		if config.thread_stop == True:
-	# 			break
-	# 	print("Prediction Completed {}".format(pc))
-
-	# def Quarantine(self):
-	# 	print("Quarantine Started -- Jaadiye ka Quarantine wala code")
-	# 	qarc = 0
-	# 	while qarc <= 20405:
-	# 		qarc+=1
-	# 		if config.thread_stop == True:
-	# 			break
-	# 	print("Quarantine Completed {}".format(qarc))
-
-
-
-<<<<<<< HEAD
 	def DeepScan(self,cs_images_chkbox,cs_videos_chkbox):
 		total_images_found = 0
 		total_videos_found = 0
-=======
-	def DeepScan(self):
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 		drives = win32api.GetLogicalDriveStrings()
 		drives = drives.split('\000')[:-1]
 		for drive in drives:
 			if(config.thread_stop==True):
-<<<<<<< HEAD
 				config.scan_details['total_images_found'] = total_images_found
 				config.scan_details['total_videos_found'] = total_videos_found
 				image_queue_size = image_data.qsize()
@@ -118,22 +61,10 @@ class Scanner():
 					if(cs_videos_chkbox is True and video_queue_size > 0):
 						for i in range(video_queue_size):
 							video_data.get()
-=======
-				data_size = data.qsize()
-				for i in range(data_size):
-					data.get()
-				break
-			for (root,dirs,files) in os.walk(drive, topdown=True): 
-				if(config.thread_stop==True):
-					data_size = data.qsize()
-					for i in range(data_size):
-						data.get()
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 					break
 				if(len(files)!=0):
 					for i in files:
 						if(config.thread_stop==True):
-<<<<<<< HEAD
 							config.scan_details['total_images_found'] = total_images_found
 							config.scan_details['total_videos_found'] = total_videos_found
 							image_queue_size = image_data.qsize()
@@ -163,18 +94,6 @@ class Scanner():
 	def QuickScan(self,cs_images_chkbox,cs_videos_chkbox):
 		total_images_found = 0
 		total_videos_found = 0
-=======
-							data_size = data.qsize()
-							for i in range(data_size):
-								data.get()
-							break
-						if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
-							data.put(root+"/"+i)
-		data.put("XOXO")
-
-	def QuickScan(self):
-		total_images_found = 0
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 		drives = win32api.GetLogicalDriveStrings()
 		drives = drives.split('\000')[:-1]
 		drives[0]=os.path.expanduser("~")
@@ -182,7 +101,6 @@ class Scanner():
 		for drive in drives:
 			if(config.thread_stop==True):
 				config.scan_details['total_images_found'] = total_images_found
-<<<<<<< HEAD
 				config.scan_details['total_videos_found'] = total_videos_found
 				image_queue_size = image_data.qsize()
 				video_queue_size = video_data.qsize()
@@ -192,16 +110,10 @@ class Scanner():
 				if(cs_videos_chkbox is True and video_queue_size > 0):
 					for i in range(video_queue_size):
 						video_data.get()
-=======
-				data_size = data.qsize()
-				for i in range(data_size):
-					data.get()
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 				break
 			for (root,dirs,files) in os.walk(drive, topdown=True):
 				if(config.thread_stop==True):
 					config.scan_details['total_images_found'] = total_images_found
-<<<<<<< HEAD
 					config.scan_details['total_videos_found'] = total_videos_found
 					image_queue_size = image_data.qsize()
 					video_queue_size = video_data.qsize()
@@ -211,17 +123,11 @@ class Scanner():
 					if(cs_videos_chkbox is True and video_queue_size > 0):
 						for i in range(video_queue_size):
 							video_data.get()
-=======
-					data_size = data.qsize()
-					for i in range(data_size):
-						data.get()
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 					break
 				if(len(files)!=0):
 					for i in files:
 						if(config.thread_stop==True):
 							config.scan_details['total_images_found'] = total_images_found
-<<<<<<< HEAD
 							config.scan_details['total_videos_found'] = total_videos_found
 							image_queue_size = image_data.qsize()
 							video_queue_size = video_data.qsize()
@@ -347,7 +253,7 @@ class Scanner():
 		if cs_videos_chkbox:
 			explicit_frames_in_video = 0
 		clear_session()
-		model = load_model("C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\Executables\\Windows\\dist\\dtoxd Scanner\\model.h5")
+		model = load_model("C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\model.h5")
 		if cs_images_chkbox:
 			x=""
 			while(x!="XOXO"):
@@ -437,53 +343,6 @@ class Scanner():
 			config.scan_details['total_videos_scanned'] = config.total_videos_scanned
 			config.scan_details['total_explicit_videos'] = config.total_explicit_videos
 			explicitfiles.put("XOXO")
-=======
-							data_size = data.qsize()
-							for i in range(data_size):
-								data.get()
-							break
-						if(i.endswith(".jpg") or i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpeg")):
-							total_images_found+=1
-							data.put(root+"/"+i)
-		config.scan_details['total_images_found'] = total_images_found
-		data.put("XOXO")
-
-	def Prediction(self):
-		total_images_scanned = 0
-		total_explicit_images = 0
-		clear_session()
-		x=""
-		model = load_model("model.h5")
-		while(x!="XOXO"):
-			if(config.thread_stop==True):
-				config.scan_details['total_images_scanned'] = total_images_scanned
-				config.scan_details['total_explicit_images'] = total_explicit_images
-				explicitfiles_size = explicitfiles.qsize()
-				for i in range(explicitfiles_size):
-					explicitfiles.get()
-				data_size = data.qsize()
-				for i in range(data_size):
-					data.get()
-				break
-			x=data.get()
-			if(x!="" or x is not None):
-				img=cv.imread(x)
-				if(img is not None):
-					height, width = img.shape[:2]
-					if(height>48 and width>48):
-						img=cv.resize(img,(300,300))
-						# img=cv.cvtColor(img,cv.COLOR_BGR2RGB)
-						img=np.array(img)
-						image = np.reshape(img,(1,300,300,3))
-						l=model.predict(image)
-						total_images_scanned+=1
-						if(l[0][0]>l[0][1]):
-							explicitfiles.put(x)
-							total_explicit_images+=1
-		config.scan_details['total_explicit_images'] = total_explicit_images
-		config.scan_details['total_images_scanned'] = total_images_scanned
-		explicitfiles.put("XOXO")
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 
 	def Quarantine(self):
 		filedata = {}
@@ -491,14 +350,9 @@ class Scanner():
 		while(orgpath is not "XOXO"):
 			if(config.thread_stop==True):
 				explicitfiles_size = explicitfiles.qsize()
-<<<<<<< HEAD
 				if explicitfiles_size > 0:
 					for i in range(explicitfiles_size):
 						explicitfiles.get()
-=======
-				for i in range(explicitfiles_size):
-					explicitfiles.get()
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 				break
 			orgpath=explicitfiles.get()
 			if(orgpath=="XOXO"):
@@ -509,17 +363,9 @@ class Scanner():
 				if(chk is None):
 					filedata[unique_filename]=orgpath
 					# os.rename(orgpath,"Quarantine/"+unique_filename)
-<<<<<<< HEAD
 					# shutil.copy(orgpath,"Quarantine/"+unique_filename)
 					# print("File Quarantined : {}".format(orgpath))
-=======
-					shutil.copy(orgpath,"Quarantine/"+unique_filename)
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878
 				else:
 					explicitfiles.put(orgpath)
 		with open("data", 'wb') as f:
 			pickle.dump(filedata, f, pickle.HIGHEST_PROTOCOL)
-<<<<<<< HEAD
-=======
-		print(explicitfiles.qsize())
->>>>>>> e0c70188e50e29d330d6d25579359b0584a40878

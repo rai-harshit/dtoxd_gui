@@ -2,12 +2,14 @@ import pythoncom, time, win32api
 from win32com.taskscheduler import taskscheduler
 # Meridiem=AM/PM
 def schedule_scan(schedule_type,Day,Hour,Minute,Meridiem):
+    print(schedule_type,Day,Hour,Minute,Meridiem)
+    Hour=int(Hour)
     if(Meridiem=='AM'):
-        if(Hour=='12'):
-            Hour='0'
+        if(Hour==12):
+            Hour="0"
     else:
-        if(Hour=='12'):
-            Hour='12'
+        if(Hour==12):
+            Hour="12"
         else:
             Hour=str(int(Hour)+int(12))
     task_name='dtoxd_scheduled_scan.job'
@@ -22,7 +24,7 @@ def schedule_scan(schedule_type,Day,Hour,Minute,Meridiem):
     new_task.SetFlags(taskscheduler.TASK_FLAG_INTERACTIVE|taskscheduler.TASK_FLAG_RUN_ONLY_IF_LOGGED_ON)
     new_task.SetIdleWait(1,10000)
     new_task.SetComment('DTOXD Automatic Trigger')
-    new_task.SetApplicationName('C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\Executables\\Windows\\dist\\dtoxd Scanner\\dtoxd Scanner.exe')
+    new_task.SetApplicationName('C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\dtoxd Scanner.py')
     new_task.SetPriority(taskscheduler.REALTIME_PRIORITY_CLASS)
     new_task.SetCreator('dtoxd')
     new_task.SetAccountInformation(win32api.GetUserName(),None)
@@ -34,6 +36,7 @@ def schedule_scan(schedule_type,Day,Hour,Minute,Meridiem):
         tt.Flags=taskscheduler.HIGH_PRIORITY_CLASS
         tt.StartMinute=int(Minute)
         tt.StartHour=int(Hour)
+        print(int(Minute),int(Hour))
         
     if(schedule_type=='Weekly'):
         if(Day=='Sunday'):
@@ -87,6 +90,5 @@ def schedule_scan(schedule_type,Day,Hour,Minute,Meridiem):
     tr.SetTrigger(tt)
     pf=new_task.QueryInterface(pythoncom.IID_IPersistFile)
     pf.Save(None,1)
-
 
 

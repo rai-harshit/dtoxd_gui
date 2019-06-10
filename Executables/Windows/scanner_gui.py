@@ -9,12 +9,12 @@ import wx.adv
 import webbrowser
 import time
 import threading
-# from scanner_main import Scanner
 import config
 import sys
 import time
 from datetime import datetime
 import scan_data
+import scheduler
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -29,7 +29,7 @@ class root_frame(wx.Frame):
         wx.Frame.__init__(self, *args, **kwds)
         self.SetSize((720, 420))
 
-        bitmap = wx.Bitmap('./src/splash_screen.png')
+        bitmap = wx.Bitmap('C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\src\\splash_screen.png')
         splash = wx.adv.SplashScreen( bitmap, wx.adv.SPLASH_CENTER_ON_SCREEN|wx.adv.SPLASH_TIMEOUT, 20000, self, id=wx.ID_ANY,
              				pos=wx.DefaultPosition, size=wx.DefaultSize)
         splash.Show()
@@ -103,7 +103,7 @@ class root_frame(wx.Frame):
         # begin wxGlade: root_frame.__set_properties
         self.SetTitle("dtoxd : The Clean Digital Experience")
         _icon = wx.NullIcon
-        _icon.CopyFromBitmap(wx.Bitmap("src\\dtoxd_logo_24x24.png", wx.BITMAP_TYPE_ANY))
+        _icon.CopyFromBitmap(wx.Bitmap("C:\\Users\\g_host\\Desktop\\dtoxd_GUI\\src\\dtoxd_logo_24x24.png", wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
         self.SetBackgroundColour(wx.Colour(240, 240, 240))
         self.SetFocus()
@@ -458,10 +458,11 @@ class root_frame(wx.Frame):
         # Getting data from Daily Scan options
         	schedule_daily_hour = self.spin_ctrl_1.GetValue()
         	schedule_daily_minutes = self.spin_ctrl_7.GetValue()
-        	schedule_daily_ampm = self.choice_4.GetCurrentSelection()
-        	f = open("preferences.log","w+")
-        	f.write(str(schedule_daily_hour)+" "+str(schedule_daily_minutes)+" "+str(schedule_daily_ampm))
-        	f.close()
+        	if self.choice_4.GetCurrentSelection() == 0:
+        		schedule_daily_ampm = "AM"
+        	else:
+        		schedule_daily_ampm = "PM"
+        	scheduler.schedule_scan("Daily","",schedule_daily_hour,schedule_daily_minutes,schedule_daily_ampm)
         elif weekly_scan_radio is True:
 	        # Getting data from Weekly Scan options
 	        schedule_weekly_day = self.choice_2.GetCurrentSelection()
@@ -477,9 +478,9 @@ class root_frame(wx.Frame):
 	        schedule_monthly_hour = self.spin_ctrl_5.GetValue()
 	        schedule_monthly_minutes = self.spin_ctrl_6.GetValue()
 	        schedule_monthly_ampm = self.choice_6.GetCurrentSelection()
-	        f = open("preferences.log","w+")
-        	f.write(str(schedule_monthly_day)+" "+str(schedule_monthly_hour)+" "+str(schedule_monthly_minutes)+" "+str(schedule_monthly_ampm))
-        	f.close()
+	        # f = open("preferences.log","w+")
+        	# f.write(str(schedule_monthly_day)+" "+str(schedule_monthly_hour)+" "+str(schedule_monthly_minutes)+" "+str(schedule_monthly_ampm))
+        	# f.close()
 
     def apply_and_close(self, event):
         config.thread_stop = True
