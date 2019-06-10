@@ -93,7 +93,6 @@ class _715811673__883977639__931769938_root_frame(wx.Frame):
         self.SetBackgroundColour(wx.Colour(240, 240, 240))
         self.SetFocus()
         self.frame_statusbar.SetStatusWidths([326, -1, -1])
-
         # statusbar fields
         frame_statusbar_fields = ["Current File :", "Total Files Scanned :", "Total Explicit Files:"]
         for i in range(len(frame_statusbar_fields)):
