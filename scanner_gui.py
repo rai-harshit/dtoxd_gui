@@ -459,10 +459,10 @@ class root_frame(wx.Frame):
         	schedule_daily_hour = self.spin_ctrl_1.GetValue()
         	schedule_daily_minutes = self.spin_ctrl_7.GetValue()
         	if self.choice_4.GetCurrentSelection() == 0:
-        		schedule_daily_ampm = "AM"
+        		schedule_daily_ampm = 'AM'
         	else:
-        		schedule_daily_ampm = "PM"
-        	scheduler.schedule_scan("Daily","",schedule_daily_hour,schedule_daily_minutes,schedule_daily_ampm)
+        		schedule_daily_ampm = 'PM'
+        	scheduler.schedule_scan('Daily','',schedule_daily_hour,schedule_daily_minutes,schedule_daily_ampm)
         elif weekly_scan_radio is True:
 	        # Getting data from Weekly Scan options
 	        schedule_weekly_day = self.choice_2.GetCurrentSelection()
