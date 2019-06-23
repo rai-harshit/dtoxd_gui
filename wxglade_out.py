@@ -9,6 +9,9 @@ from watch import start_watching, report_updater
 from threading import Thread
 import watcher_config
 from time import sleep
+import subprocess
+import watcher_service
+import win32serviceutil
 # begin wxGlade: dependencies
 # end wxGlade
 
@@ -176,24 +179,24 @@ class MyFrame(wx.Frame):
     		self.stop_watcher()
 
     def run_watcher(self):
-    	path_count = self.list_ctrl_1.GetItemCount()
-    	paths = []
-    	for i in range(path_count):
-    		paths.append(self.list_ctrl_1.GetItem(i).GetText())
-    	print("Request to start watcher")
-    	print("Watcher Started")
-    	self.button_8.SetLabel("Stop Watcher")
-    	# watcher_thread = Thread(target=start_watching, args=(paths,), daemon=True, name="watcher_thread")
-    	# report_updater_thread = Thread(target=report_updater, args=("C:\\Users\\g_host\\Desktop\\dtoxd_GUI_dir",), daemon=True, name="report_updater_thread")
-    	# update_list_thread = Thread(target=self.update_report_list, daemon=True, name="update_list_thread")
-    	# watcher_thread.start()
-    	# report_updater_thread.start()
-    	# update_list_thread.start()
+        path_count = self.list_ctrl_1.GetItemCount()
+        if path_count == 0:
+            wx.MessageBox("Watcher's List is empty. Add a directory to watch and try again.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
+        else:
+            for i in range(path_count):
+                watcher_config.paths.append(self.list_ctrl_1.GetItem(i).GetText())
+            # p_install = subprocess.Popen("python watcher_service.py install")
+            # p_start = subprocess.Popen("python watcher_service.py start")
+            win32serviceutil.HandleCommandLine(watcher_service.HelloWorldSvc,argv=["","install"])
+            win32serviceutil.HandleCommandLine(watcher_service.HelloWorldSvc,argv=["","start"])
+            self.button_8.SetLabel("Stop Watcher")
 
     def stop_watcher(self):
-    	print("Request to stop watcher")
-    	print("Watcher Stopped...")
-    	self.button_8.SetLabel("Run Watcher")
+        # p_stop = subprocess.Popen("python watcher_service.py stop")
+        # p_remove = subprocess.Popen("python watcher_service.py remove")
+        win32serviceutil.HandleCommandLine(watcher_service.HelloWorldSvc,argv=["watcher_service.py","stop"])
+        win32serviceutil.HandleCommandLine(watcher_service.HelloWorldSvc,argv=["watcher_service.py","remove"])
+        self.button_8.SetLabel("Run Watcher")
 
 
     def update_report_list(self):
@@ -246,13 +249,14 @@ class MyFrame(wx.Frame):
 		    	del_item = self.list_ctrl_1.DeleteItem(selected_path)
         # event.Skip()
 
-    def update_list(self):
-    	pass
-
 
     def generate_report(self, event):  # wxGlade: MyFrame.<event_handler>
-        print("Event handler 'generate_report' not implemented!")
-        event.Skip()
+    	# old_count = self.list_ctrl_2.GetItemCount()
+    	# for c in old_count:
+        self.list_ctrl_2.DeleteAllItems()
+        modified_paths = open("modified_paths.log")
+        for path in modified_paths:
+        	self.list_ctrl_2.InsertItem(0,path)
 
     def clear_report(self, event):  # wxGlade: MyFrame.<event_handler>
         print("Event handler 'clear_report' not implemented!")

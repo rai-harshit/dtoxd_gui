@@ -6,8 +6,6 @@ import socket
 import time
 import logging
 import random
-
-#integrating watch.py
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -22,7 +20,7 @@ class WatcherMain(FileSystemEventHandler):
                 f.write(event.src_path+"\n")
                 f.close()   
 
-class HelloWorldSvc (win32serviceutil.ServiceFramework):
+class HelloWorldSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "dtoxd_directory_watcher"
     _svc_display_name_ = "dtoxd Directory Watcher"
     _svc_description_ = "This service is used to monitor particular folders for media files."
@@ -40,20 +38,18 @@ class HelloWorldSvc (win32serviceutil.ServiceFramework):
         self.stop_requested = True
 
     def SvcDoRun(self):
-        servicemanager.LogMsg(
-            servicemanager.EVENTLOG_INFORMATION_TYPE,
-            servicemanager.PYS_SERVICE_STARTED,
-            (self._svc_name_,'')
-        )
         self.main()
 
     def main(self):
-	    paths = ["C:\\Users\\g_host\\Desktop","C:\\Users\\g_host\\Downloads"]
-	    nf = open("C:\\Users\\g_host\\Desktop\\dtoxd_GUI_dir\\modified_paths.log","w+")
+	    nf = open("C:\\Users\\g_host\\Desktop\\dtoxd_GUI_dir\\modified_paths.log","a+")
 	    nf.close()
 	    event_handler = WatcherMain()
 	    observer = Observer()
-	    for i in paths:
+	    test = open("C:\\Users\\g_host\\Desktop\\dtoxd_GUI_dir\\test.log","w+")
+	    for path in watcher_config.paths:
+	    	test.write(path)
+	    test.close()
+	    for i in watcher_config.paths:
 		    observer.schedule(event_handler, path=i, recursive=True)
 	    observer.start()
 	    while self.stop_requested is not True:
@@ -61,6 +57,6 @@ class HelloWorldSvc (win32serviceutil.ServiceFramework):
 	    observer.stop()
 	    observer.join()
 	    return
-
-if __name__ == '__main__':
+                                                                                                                                                                                                                                                                                                                                                                                                                                    
+if __name__ == "__main__":
     win32serviceutil.HandleCommandLine(HelloWorldSvc)
