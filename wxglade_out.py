@@ -10,7 +10,7 @@ from threading import Thread
 import watcher_config
 from time import sleep
 import subprocess
-import watcher_service
+import multiprocessing
 import win32serviceutil
 # begin wxGlade: dependencies
 # end wxGlade
@@ -183,19 +183,17 @@ class MyFrame(wx.Frame):
         if path_count == 0:
             wx.MessageBox("Watcher's List is empty. Add a directory to watch and try again.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
         else:
+            f = open("mondirs","a+")
             for i in range(path_count):
-                watcher_config.paths.append(self.list_ctrl_1.GetItem(i).GetText())
-            # p_install = subprocess.Popen("python watcher_service.py install")
-            # p_start = subprocess.Popen("python watcher_service.py start")
-            win32serviceutil.HandleCommandLine(watcher_service.HelloWorldSvc,argv=["","install"])
-            win32serviceutil.HandleCommandLine(watcher_service.HelloWorldSvc,argv=["","start"])
+                f.write(self.list_ctrl_1.GetItem(i).GetText()+"\n")
+            f.close()
+            p_install = subprocess.Popen("python watcher_service.py install" )
+            p_start = subprocess.Popen("python watcher_service.py start")
             self.button_8.SetLabel("Stop Watcher")
 
     def stop_watcher(self):
-        # p_stop = subprocess.Popen("python watcher_service.py stop")
-        # p_remove = subprocess.Popen("python watcher_service.py remove")
-        win32serviceutil.HandleCommandLine(watcher_service.HelloWorldSvc,argv=["watcher_service.py","stop"])
-        win32serviceutil.HandleCommandLine(watcher_service.HelloWorldSvc,argv=["watcher_service.py","remove"])
+        p_stop = subprocess.Popen("python watcher_service.py stop")
+        p_remove = subprocess.Popen("python watcher_service.py remove")
         self.button_8.SetLabel("Run Watcher")
 
 
