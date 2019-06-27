@@ -1,5 +1,5 @@
 ('C:\\Users\\g_host\\Desktop\\dtoxd_GUI_dir\\Executable\\build\\directoryWatcher\\directoryWatcher.exe',
- True,
+ False,
  False,
  True,
  None,
@@ -39,7 +39,7 @@
  [],
  False,
  False,
- 1561402399,
- [('run.exe',
-   'c:\\users\\g_host\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\run.exe',
+ 1561648227,
+ [('runw.exe',
+   'c:\\users\\g_host\\appdata\\local\\programs\\python\\python36\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\runw.exe',
    'EXECUTABLE')])

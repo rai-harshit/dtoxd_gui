@@ -9,7 +9,6 @@ import random
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-import watcher_config
 import servicemanager
 import os
     

@@ -6,11 +6,11 @@
 
 import wx
 from threading import Thread
-import watcher_config
 from time import sleep
 import subprocess
 import multiprocessing
 import win32serviceutil
+import os
 # begin wxGlade: dependencies
 # end wxGlade
 
@@ -21,16 +21,24 @@ import win32serviceutil
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         # begin wxGlade: MyFrame.__init__
+        self.cwd = cwd = os.path.dirname(os.path.abspath(__file__))
+        self.modpath = os.path.join(cwd,"modified_paths.log")
+        self.startupinfo = None
+        if os.name == 'nt':
+            self.startupinfo = subprocess.STARTUPINFO()
+            self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW	        
         kwds["style"] = kwds.get("style", 0) | wx.BORDER_SIMPLE | wx.CAPTION | wx.CLIP_CHILDREN | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.STAY_ON_TOP | wx.SYSTEM_MENU
         wx.Frame.__init__(self, *args, **kwds)
         self.SetSize((720, 420))
         self.list_ctrl_1 = wx.ListCtrl(self, wx.ID_ANY, style=wx.BORDER_DEFAULT | wx.BORDER_SIMPLE | wx.LC_ALIGN_LEFT | wx.LC_HRULES | wx.LC_LIST | wx.LC_SINGLE_SEL)
         self.button_1 = wx.Button(self, wx.ID_ANY, "Add New Directory")
         self.list_ctrl_2 = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_LIST | wx.LC_NO_HEADER | wx.LC_VRULES)
-        if watcher_config.watcher_running is True:
-        	self.button_8 = wx.Button(self, wx.ID_ANY, "Stop Watcher")
+        try:
+	        win32serviceutil.QueryServiceStatus('dtoxd_directory_watcher')
+        except:
+        	self.button_8 = wx.Button(self, wx.ID_ANY, "Run Watcher")
         else:
-	        self.button_8 = wx.Button(self, wx.ID_ANY, "Run Watcher")
+        	self.button_8 = wx.Button(self, wx.ID_ANY, "Stop Watcher")
         self.button_2 = wx.Button(self, wx.ID_ANY, "Remove Directory")
         self.button_3 = wx.Button(self, wx.ID_ANY, "Generate Report")
         self.button_4 = wx.Button(self, wx.ID_ANY, "Clear Report")
@@ -50,6 +58,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.exit, self.button_6)
         self.Bind(wx.EVT_BUTTON, self.save, self.button_5)
         # end wxGlade
+        self.items = []
 
     def __set_properties(self):
         # begin wxGlade: MyFrame.__set_properties
@@ -62,6 +71,12 @@ class MyFrame(wx.Frame):
         self.button_1.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Segoe UI"))
         self.list_ctrl_2.SetMinSize((220, 250))
         self.list_ctrl_2.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Segoe UI"))
+        self.watchDirs_path = os.path.join(self.cwd,"watchDirs")
+        if not os.path.isfile(self.watchDirs_path):
+        	open(self.watchDirs_path,"w+")
+        older_dirs = open(self.watchDirs_path,"r")
+        for od in older_dirs:
+        	self.list_ctrl_1.InsertItem(0,od)
         self.button_8.SetMinSize((125, 26))
         self.button_8.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, "Segoe UI"))
         self.button_2.SetMinSize((125, 26))
@@ -182,58 +197,36 @@ class MyFrame(wx.Frame):
         if path_count == 0:
             wx.MessageBox("Watcher's List is empty. Add a directory to watch and try again.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
         else:
-            cwd = os.path.dirname(os.path.abspath(__file__))
-            f = open(os.path.join(cwd,"watchDirs"),"a+")
-            for i in range(path_count):
-                f.write(self.list_ctrl_1.GetItem(i).GetText()+"\n")
-            f.close()
-            p_install = subprocess.Popen("python watcher_service.py install" )
-            p_start = subprocess.Popen("python watcher_service.py start")
+            if len(self.items) > 0:
+                fw = open(self.watchDirs_path,"w")
+                for item in self.items:
+                    fw.write(item+"\n")
+                fw.close()
+            p_install = subprocess.Popen("python watcher_service.py install",startupinfo=self.startupinfo)
+            bin1_1 = p_install.communicate()
+            p_start = subprocess.Popen("python watcher_service.py start",startupinfo=self.startupinfo)
+            bin1_2 = p_start.communicate()
             self.button_8.SetLabel("Stop Watcher")
 
     def stop_watcher(self):
-        p_stop = subprocess.Popen("python watcher_service.py stop")
-        p_remove = subprocess.Popen("python watcher_service.py remove")
+        p_stop = subprocess.Popen("python watcher_service.py stop",startupinfo=self.startupinfo)
+        p_remove = subprocess.Popen("python watcher_service.py remove",startupinfo=self.startupinfo)
         self.button_8.SetLabel("Run Watcher")
 
-
-    def update_report_list(self):
-    	reported_files = []
-    	i = 0
-    	old_paths = open("modified_paths.log","r")
-    	for path in old_paths:
-    		self.list_ctrl_2.InsertItem(0,path)
-    	while watcher_config.stop_watcher is not True:
-    		if watcher_config.report_update_available is True:
-    			mod_paths = open("modified_paths.log","r")
-    			if watcher_config.current_line == 0:
-	    			for path in mod_paths:
-	    				self.list_ctrl_2.InsertItem(0,path)
-	    				watcher_config.current_line+=1 
-	    		else:
-	    			for path in mod_paths:
-	    				if i < watcher_config.current_line:
-	    					i+=1
-	    					continue
-	    				else:
-	    					self.list_ctrl_2.InsertItem(0,path)
-	    	watcher_config.report_update_available = False
-	    	sleep(5)
-
     def add_new_directory(self, event):
-      # wxGlade: MyFrame.<event_handler>
-        items = []
+      	# wxGlade: MyFrame.<event_handler>
         dlg = wx.DirDialog(self, "Choose input directory", "",wx.DD_DEFAULT_STYLE)
         dlg.ShowModal()
         selected_path = dlg.GetPath()
-        if selected_path != "":
-        	path_count = self.list_ctrl_1.GetItemCount()
-        	for i in range(path_count):
-        		items.append(self.list_ctrl_1.GetItem(i).GetText())
-        	if selected_path not in items:
-	        	self.list_ctrl_1.InsertItem(0,selected_path)
-	        else:
-	        	wx.MessageBox("Path already exists in the Watcher's List.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
+        # if selected_path != "":
+        path_count = self.list_ctrl_1.GetItemCount()
+        for i in range(path_count):
+            self.items.append(self.list_ctrl_1.GetItem(i).GetText().rstrip())
+        if selected_path not in self.items:
+            self.list_ctrl_1.InsertItem(0,selected_path)
+            self.items.append(selected_path)
+        else:
+            wx.MessageBox("Path already exists in the Watcher's List.", "Attention !" ,wx.OK | wx.ICON_INFORMATION)
 
     def remove_directory(self, event):  # wxGlade: MyFrame.<event_handler>
     	path_count = self.list_ctrl_1.GetItemCount()
@@ -252,24 +245,32 @@ class MyFrame(wx.Frame):
     	# old_count = self.list_ctrl_2.GetItemCount()
     	# for c in old_count:
         self.list_ctrl_2.DeleteAllItems()
-        modified_paths = open("modified_paths.log")
-        for path in modified_paths:
-        	self.list_ctrl_2.InsertItem(0,path)
+        if os.path.isfile(self.modpath):
+	        modified_paths = open(self.modpath,"r")
+	        for path in modified_paths:
+	        	self.list_ctrl_2.InsertItem(0,path)
+        else:
+	        open(self.modpath,"w").close()
 
     def clear_report(self, event):  # wxGlade: MyFrame.<event_handler>
-        print("Event handler 'clear_report' not implemented!")
-        event.Skip()
+        # print("Event handler 'clear_report' not implemented!")
+        # event.Skip()
+        if self.list_ctrl_2.GetItemCount() > 0:
+	        response = wx.MessageBox("This will clear all the tracking history. Are you sure ?", "Attention !" ,wx.YES_NO | wx.ICON_EXCLAMATION)
+	        if response == 2:
+		        self.list_ctrl_2.DeleteAllItems()
+		        open(self.modpath,"w").close()
+        else:
+	        wx.MessageBox("There is no tracking history to clear.", "Attention !" ,wx.OK | wx.ICON_EXCLAMATION)
 
     def save_and_exit(self, event):  # wxGlade: MyFrame.<event_handler>
-        print("Event handler 'save_and_exit' not implemented!")
-        event.Skip()
+    	wx.CallAfter(self.Close)
 
     def exit(self, event):  # wxGlade: MyFrame.<event_handler>
-        print("Event handler 'exit' not implemented!")
-        event.Skip()
+    	wx.CallAfter(self.Close)
 
     def save(self, event):  # wxGlade: MyFrame.<event_handler>
-        print("Event handler 'save' not implemented!")
+        # print("Event handler 'save' not implemented!")
         event.Skip()
 
 # end of class MyFrame
