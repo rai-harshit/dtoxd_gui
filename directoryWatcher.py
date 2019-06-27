@@ -23,6 +23,10 @@ class MyFrame(wx.Frame):
         # begin wxGlade: MyFrame.__init__
         self.cwd = cwd = os.path.dirname(os.path.abspath(__file__))
         self.modpath = os.path.join(cwd,"modified_paths.log")
+        self.startupinfo = None
+        if os.name == 'nt':
+            self.startupinfo = subprocess.STARTUPINFO()
+            self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW	        
         kwds["style"] = kwds.get("style", 0) | wx.BORDER_SIMPLE | wx.CAPTION | wx.CLIP_CHILDREN | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.STAY_ON_TOP | wx.SYSTEM_MENU
         wx.Frame.__init__(self, *args, **kwds)
         self.SetSize((720, 420))
@@ -198,15 +202,15 @@ class MyFrame(wx.Frame):
                 for item in self.items:
                     fw.write(item+"\n")
                 fw.close()
-            p_install = subprocess.Popen("python watcher_service.py install")
-            p_install.communicate()
-            p_start = subprocess.Popen("python watcher_service.py start")
-            p_start.communicate()
+            p_install = subprocess.Popen("python watcher_service.py install",startupinfo=self.startupinfo)
+            bin1_1 = p_install.communicate()
+            p_start = subprocess.Popen("python watcher_service.py start",startupinfo=self.startupinfo)
+            bin1_2 = p_start.communicate()
             self.button_8.SetLabel("Stop Watcher")
 
     def stop_watcher(self):
-        p_stop = subprocess.Popen("python watcher_service.py stop")
-        p_remove = subprocess.Popen("python watcher_service.py remove")
+        p_stop = subprocess.Popen("python watcher_service.py stop",startupinfo=self.startupinfo)
+        p_remove = subprocess.Popen("python watcher_service.py remove",startupinfo=self.startupinfo)
         self.button_8.SetLabel("Run Watcher")
 
     def add_new_directory(self, event):
